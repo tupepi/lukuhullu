@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(npx tsc *)",
-      "Bash(timeout 6 node index.js)",
-      "Bash(echo \"EXIT:$?\")"
-    ]
-  }
-}
