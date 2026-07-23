@@ -26,11 +26,11 @@ import bookGroupsRouter from "./routes/bookGroups.js";
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Sallii selaimen tekemät pyynnöt eri origin-osoitteesta (frontend pyörii
-// eri portissa/domainissa kuin backend). Aluksi sallitaan kaikki originit
-// kehityksen helpottamiseksi - kun frontend on deployattu GitHub Pagesiin,
-// tämä kannattaa rajata tarkkaan domainiin (ks. PAATOKSET.md: Deployment).
-app.use(cors());
+// Sallii selaimen tekemät pyynnöt eri origin-osoitteesta (CORS).
+// Tämä on tarpeen, koska frontend ja backend
+// ajetaan eri osoitteissa (esim. localhost:3000 vs localhost:3001). CORS-ongelma ilmenee
+// selaimen konsolissa "Access-Control-Allow-Origin" -virheilmoituksena, jos tätä ei ole.
+app.use(cors({ origin: process.env.CORS_ALLOWED_ORIGIN }));
 
 // Muuttaa saapuvien POST/PUT-pyyntöjen JSON-bodyn automaattisesti
 // tavalliseksi JS-objektiksi (req.body). Ilman tätä req.body olisi undefined.
