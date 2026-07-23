@@ -1,0 +1,24 @@
+@import "tailwindcss";
+/* Lukuhullu-teeman design-tokenit. Tailwind v4 generoi näistä automaattisesti
+   utility-luokat (esim. --color-forest -> bg-forest, text-forest, border-forest).
+   Teema: vanhan kirjaston lukusali - syvänvihreä, messinki, nahka - ei
+   kermanvärinen+terrakotta-oletus eikä musta+neon-oletus. */
+@theme {
+  --color-forest: #1f2e28; /* pääasiallinen tausta - syvä metsänvihreä */
+  --color-paper: #f3ede0; /* kortit, pinnat, teksti tumman taustan päällä */
+  --color-brass: #c9973e; /* ensisijainen aksentti - messinkinen lamppuvalo */
+  --color-wine: #8b3a3a; /* "jäi kesken", varoitukset - nahkaselän punainen */
+  --color-sage: #6e8b6e; /* "luettu", onnistumiset - vaalea kirjastonvihreä */
+  --color-ink: #24211b; /* teksti paperipinnoilla */
+
+  --font-display: "Fraunces", serif; /* otsikot */
+  --font-body: "Public Sans", sans-serif; /* leipäteksti, UI */
+  --font-mono:
+    "IBM Plex Mono", monospace; /* päivämäärät, lukijamäärät, metatieto */
+}
+
+body {
+  background-color: var(--color-forest);
+  color: var(--color-paper);
+  font-family: var(--font-body);
+}
