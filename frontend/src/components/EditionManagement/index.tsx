@@ -1,7 +1,7 @@
 import { useAuth } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import type { UserBook, BookSearchResult, Edition } from "../../types";
+import type { BookGroupEntry, BookSearchResult, Edition } from "../../types";
 import { getEditions, mergeBooks, unmergeBook, getBooks } from "../../api/bookGroups";
 import {
   groupByWorkRoot,
@@ -34,12 +34,12 @@ interface Props {
 // lisäys) yhdessä komponentissa - ks. PAATOKSET.md muutoshistoria.
 export default function EditionManagement({ onBack }: Props) {
   const { getToken } = useAuth();
-  const [books, setBooks] = useState<UserBook[]>([]);
+  const [books, setBooks] = useState<BookGroupEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [selectedRoot, setSelectedRoot] = useState<{
     rootId: number;
-    representative: UserBook;
+    representative: BookGroupEntry;
   } | null>(null);
   const [currentEditions, setCurrentEditions] = useState<Edition[] | null>(
     null,
@@ -75,7 +75,10 @@ export default function EditionManagement({ onBack }: Props) {
     count: group.length,
   }));
 
-  async function handleSelectGroup(rootId: number, representative: UserBook) {
+  async function handleSelectGroup(
+    rootId: number,
+    representative: BookGroupEntry,
+  ) {
     setSelectedRoot({ rootId, representative });
     setMessage(null);
     setAddingManual(false);

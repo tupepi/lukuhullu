@@ -56,6 +56,7 @@ export default function EditionSwitcher({
           coverUrl: result.coverUrl,
           yearPublished: result.yearPublished,
           subjects: result.subjects,
+          isbn: result.isbn,
         },
         getToken,
       );
