@@ -74,7 +74,7 @@ export default function ReadingDetailsFields({
             type="number"
             value={readYear}
             onChange={(e) => onReadYearChange(e.target.value)}
-            placeholder="2024"
+            placeholder={String(new Date().getFullYear())}
             className={`${inputClass} w-20`}
           />
         </label>

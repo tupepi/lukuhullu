@@ -101,7 +101,7 @@ export default function ManualBookForm({
             type="number"
             value={year}
             onChange={(e) => setYear(e.target.value)}
-            placeholder="2024"
+            placeholder={String(new Date().getFullYear())}
             className={`${inputClass} w-24`}
           />
         </label>
