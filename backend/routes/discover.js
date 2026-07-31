@@ -13,6 +13,9 @@ import pool from "../db.js";
 
 const router = express.Router();
 
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 50;
+
 router.get("/", requireAuth(), async (req, res) => {
   try {
     // COALESCE(b.work_group_id, b.id) laskee "rootin" jokaiselle riville
@@ -77,13 +80,39 @@ router.get("/", requireAuth(), async (req, res) => {
       }
     }
 
-    const books = Array.from(bookMap.values()).sort(
-      (a, b) =>
-        new Date(b.latestActivity).getTime() -
-        new Date(a.latestActivity).getTime(),
-    );
+    // Suosituimmuusjärjestys: lukukerrat (luetut + kesken jääneet) ja
+    // kommentit lasketaan yhteen samaan pisteeseen - esim. 3 lukukertaa
+    // ilman kommentteja (pist. 3) on vähemmän kuin 2 lukukertaa + 2
+    // kommenttia (pist. 4). Tasapisteissä uusin aktiviteetti voittaa.
+    function score(book) {
+      return book.readerCount + book.abandonedCount + book.comments.length;
+    }
 
-    res.json({ results: books });
+    const books = Array.from(bookMap.values()).sort((a, b) => {
+      const diff = score(b) - score(a);
+      if (diff !== 0) return diff;
+      return (
+        new Date(b.latestActivity).getTime() -
+        new Date(a.latestActivity).getTime()
+      );
+    });
+
+    // Sivutus tehdään vasta valmiiksi ryhmitellylle ja järjestetylle
+    // listalle (offset/limit viittaavat kirjoihin/ryhmiin, ei raakoihin
+    // user_books-riveihin) - laskenta (readerCount/abandonedCount/comments)
+    // vaatii kaikki rivit ennen kuin ryhmiä voi leikata sivuiksi.
+    const offset = Math.max(0, Number(req.query.offset) || 0);
+    const limit = Math.min(
+      MAX_LIMIT,
+      Math.max(1, Number(req.query.limit) || DEFAULT_LIMIT),
+    );
+    const page = books.slice(offset, offset + limit);
+
+    res.json({
+      results: page,
+      total: books.length,
+      hasMore: offset + limit < books.length,
+    });
   } catch (error) {
     console.error("Selailun haku epäonnistui:", error);
     res.status(500).json({ error: "Selailun haku epäonnistui" });

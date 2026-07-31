@@ -6,16 +6,26 @@
 import type { DiscoverBook } from "../types";
 import { API_BASE } from "./client";
 
+export interface DiscoverPage {
+  results: DiscoverBook[];
+  hasMore: boolean;
+}
+
 export async function getDiscoverFeed(
   getToken: () => Promise<string | null>,
-): Promise<DiscoverBook[]> {
+  offset: number,
+  limit: number,
+): Promise<DiscoverPage> {
   const token = await getToken();
-  const res = await fetch(`${API_BASE}/api/discover`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const res = await fetch(
+    `${API_BASE}/api/discover?offset=${offset}&limit=${limit}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
   if (!res.ok) {
     throw new Error("Selailun haku epäonnistui");
   }
   const data = await res.json();
-  return data.results;
+  return { results: data.results, hasMore: data.hasMore };
 }

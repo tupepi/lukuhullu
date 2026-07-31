@@ -11,10 +11,12 @@
 // laskettua anonyymien lukijoiden määrää. Lukijamäärä (readerCount) NÄKYY
 // kylläkin aina ylempänä riippumatta kommenttien määrästä.
 import { useAuth } from "@clerk/clerk-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { DiscoverBook } from "../types";
 import { getDiscoverFeed } from "../api/discover";
 import Spinner from "./ui/Spinner";
+
+const PAGE_SIZE = 20;
 
 interface Props {
   onSelectBook: (bookId: number) => void;
@@ -24,13 +26,18 @@ export default function Discover({ onSelectBook }: Props) {
   const { getToken } = useAuth();
   const [books, setBooks] = useState<DiscoverBook[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const loadingMoreRef = useRef(false);
 
   useEffect(() => {
     async function hae() {
       setLoading(true);
       try {
-        const data = await getDiscoverFeed(getToken);
-        setBooks(data);
+        const page = await getDiscoverFeed(getToken, 0, PAGE_SIZE);
+        setBooks(page.results);
+        setHasMore(page.hasMore);
       } catch (err) {
         console.error(err);
       } finally {
@@ -40,6 +47,45 @@ export default function Discover({ onSelectBook }: Props) {
     hae();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Lataa seuraavan erän kun sentinel-elementti tulee näkyviin
+  // vieritettäessä listan loppua kohti - korvaa perinteisen "lataa lisää"
+  // -painikkeen tai numeroidun sivutuksen, koska Selaa on luonteeltaan
+  // jatkuva feed eikä hakutulossivu.
+  useEffect(() => {
+    if (!hasMore || loading) return;
+    const el = sentinelRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loadingMoreRef.current) {
+          loadingMoreRef.current = true;
+          setLoadingMore(true);
+          (async () => {
+            try {
+              const page = await getDiscoverFeed(
+                getToken,
+                books.length,
+                PAGE_SIZE,
+              );
+              setBooks((prev) => [...prev, ...page.results]);
+              setHasMore(page.hasMore);
+            } catch (err) {
+              console.error(err);
+            } finally {
+              loadingMoreRef.current = false;
+              setLoadingMore(false);
+            }
+          })();
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasMore, loading, books.length]);
 
   if (loading) {
     return (
@@ -126,6 +172,15 @@ export default function Discover({ onSelectBook }: Props) {
           )}
         </div>
       ))}
+      {hasMore && (
+        <div
+          ref={sentinelRef}
+          className="col-span-full flex items-center justify-center gap-2 py-4 font-body text-xs text-paper/60"
+        >
+          {loadingMore && <Spinner size={14} />}
+          Ladataan lisää...
+        </div>
+      )}
     </div>
   );
 }
