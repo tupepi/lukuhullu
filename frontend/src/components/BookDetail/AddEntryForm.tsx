@@ -23,7 +23,9 @@ export default function AddEntryForm({
 }) {
   const { getToken } = useAuth();
   const [status, setStatus] = useState<BookStatus>("read");
-  const [readYear, setReadYear] = useState("");
+  const [readYear, setReadYear] = useState(
+    new Date().getFullYear().toString(),
+  );
   const [readMonth, setReadMonth] = useState("");
   const [readDay, setReadDay] = useState("");
   const [ownership, setOwnership] = useState<Ownership | "">("");

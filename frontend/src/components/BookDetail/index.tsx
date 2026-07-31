@@ -211,7 +211,10 @@ export default function BookDetail({
           Omat merkintäsi
         </h3>
         {ownEntries.length === 0 ? (
-          <button onClick={() => setAddingNew(true)} className="...">
+          <button
+            onClick={() => setAddingNew(true)}
+            className={`${primaryButtonClass} inline-flex items-center gap-1.5`}
+          >
             <BookCheck size={16} />
             Merkitse luetuksi
           </button>
@@ -230,7 +233,10 @@ export default function BookDetail({
                 />
               </div>
             ))}
-            <button onClick={() => setAddingNew(true)} className="...">
+            <button
+              onClick={() => setAddingNew(true)}
+              className={secondaryButtonClass}
+            >
               + Lisää uusi merkintä
             </button>
           </div>
