@@ -35,6 +35,7 @@ router.post("/", requireAuth(), async (req, res) => {
   const { userId } = getAuth(req);
 
   const {
+    bookId: providedBookId,
     openLibraryId,
     googleBooksId,
     title,
@@ -78,23 +79,39 @@ router.post("/", requireAuth(), async (req, res) => {
   }
 
   try {
-    // 1. Tarkistetaan onko tämä kirja jo aiemmin lisätty books-tauluun
-    // (esim. toisen käyttäjän toimesta, tai tämän käyttäjän aiemmalla
-    // lukukerralla). Haetaan joko Open Libraryn tai Google Booksin ID:llä.
+    // 1. Selvitetään mihin books-riviin tämä lukukerta liitetään.
     //
-    // Huom: jos molemmat ID:t ovat null (manuaalinen lisäys, ei API-osumaa),
-    // "null = null" on SQL:ssä aina epätosi - tämä rivi ei siis koskaan
-    // löydä väärää kirjaa manuaalisen lisäyksen yhteydessä.
-    const bookId = await findOrCreateBook({
-      openLibraryId,
-      googleBooksId,
-      title,
-      author,
-      coverUrl,
-      yearPublished,
-      subjects,
-      isbn,
-    });
+    // Jos kutsuja (esim. BookDetail-sivu) jo tietää bookId:n, käytetään sitä
+    // suoraan sen sijaan että mentäisiin findOrCreateBookin kautta - tämä on
+    // PAKOLLISTA manuaalisesti lisätyille kirjoille: niillä open_library_id
+    // ja google_books_id ovat molemmat null, ja "null = null" on SQL:ssä aina
+    // epätosi, joten findOrCreateBook ei koskaan löytäisi olemassa olevaa
+    // riviä vaan loisi joka kerta uuden, ryhmästä irrallisen duplikaatin
+    // (bugi: "luetuksi merkintä luo duplikaatin painoksen").
+    // findOrCreateBook jää käyttöön vain silloin kun bookId:tä ei vielä
+    // tiedetä (esim. hakutuloksen ensimmäinen lisäys Open Libraryn/Google
+    // Booksin ID:llä).
+    let bookId;
+    if (providedBookId) {
+      const bookExists = await pool.query(`SELECT 1 FROM books WHERE id = $1`, [
+        providedBookId,
+      ]);
+      if (bookExists.rows.length === 0) {
+        return res.status(404).json({ error: "Kirjaa ei löytynyt" });
+      }
+      bookId = providedBookId;
+    } else {
+      bookId = await findOrCreateBook({
+        openLibraryId,
+        googleBooksId,
+        title,
+        author,
+        coverUrl,
+        yearPublished,
+        subjects,
+        isbn,
+      });
+    }
 
     // 2. Nyt kun tiedetään bookId (joko vanha tai juuri luotu), lisätään
     // varsinainen käyttäjäkohtainen rivi. Huomaa ettei tässä estetä

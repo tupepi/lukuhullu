@@ -59,6 +59,7 @@ export default function AddEntryForm({
     try {
       await addUserBook(
         {
+          bookId: detail.bookId,
           openLibraryId: detail.openLibraryId,
           googleBooksId: detail.googleBooksId,
           title: detail.title,

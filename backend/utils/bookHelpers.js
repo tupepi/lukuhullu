@@ -22,8 +22,15 @@ export async function findOrCreateBook({
   // API-osumaa, ks. PAATOKSET.md: Manuaalinen kirjan lisäys), tämä kysely ei
   // koskaan löydä osumaa vahingossa. SQL:ssä "sarake = NULL" palauttaa aina
   // NULL (ei true), joten "open_library_id = NULL OR google_books_id = NULL"
-  // ei täsmää mihinkään riviin - jokainen manuaalisesti lisätty kirja luo siis
-  // aina uuden books-rivin, mikä on haluttu käytös.
+  // ei täsmää mihinkään riviin - jokainen kutsu luo siis aina uuden
+  // books-rivin kun molemmat tunnisteet ovat null. Tämä on haluttu käytös
+  // AINOASTAAN kun kutsuja ei vielä tiedä books-rivin id:tä (esim. tuore
+  // manuaalinen lisäys tai hakutulos) - jos id on jo tiedossa (esim. olemassa
+  // olevalle painokselle kirjataan uusi lukukerta), kutsujan pitää käyttää
+  // sitä id:tä suoraan eikä kutsua tätä funktiota, tai jokainen kutsu luo
+  // vahingossa uuden duplikaattikirjan (ks. PAATOKSET.md: bugikorjaus
+  // "luetuksi-merkintä loi duplikaatin painoksen", routes/userBooks.js:n
+  // POST-reitin bookId-oikotie).
   const existing = await pool.query(
     `SELECT id FROM books WHERE open_library_id = $1 OR google_books_id = $2`,
     [openLibraryId || null, googleBooksId || null],

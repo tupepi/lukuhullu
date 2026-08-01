@@ -26,6 +26,13 @@ export async function searchBooks(query: string): Promise<BookSearchResult[]> {
 }
 
 export interface AddBookInput {
+  // Jos kutsuja jo tietää books-rivin id:n (esim. BookDetail-sivu, joka on
+  // jo ladannut tämän painoksen), välitetään se suoraan tässä - muuten
+  // backend joutuisi hakemaan/luomaan kirjan openLibraryId/googleBooksId:n
+  // perusteella, mikä epäonnistuu manuaalisesti lisätyille kirjoille
+  // (molemmat null -> ei koskaan löydä olemassa olevaa riviä, ks. bookId:n
+  // käyttö backendin POST /api/user-books:ssa).
+  bookId?: number;
   openLibraryId: string | null;
   googleBooksId: string | null;
   title: string;
