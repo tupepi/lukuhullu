@@ -67,7 +67,7 @@ function AuthenticatedApp() {
 
   if (displayName === undefined) {
     return (
-      <div className="flex min-h-screen items-center justify-center gap-2 font-body text-paper/70">
+      <div className="flex min-h-dvh items-center justify-center gap-2 font-body text-paper/70">
         <Spinner size={16} />
         Ladataan...
       </div>
@@ -84,13 +84,13 @@ function AuthenticatedApp() {
       {currentView === "tabs" && viewingBookId === null ? (
         <button
           onClick={() => setMenuOpen(true)}
-          className="rounded-full p-2 text-brass transition hover:bg-paper/10"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-brass transition hover:bg-paper/10"
           aria-label="Valikko"
         >
           <Menu size={24} />
         </button>
       ) : (
-        <span className="w-10" /> // pitää headerin tasapainossa kun hampurilaispainike ei näy
+        <span className="w-11" /> // pitää headerin tasapainossa kun hampurilaispainike ei näy
       )}
       <span className="font-display text-lg tracking-wide text-paper">
         Lukuhullu
@@ -104,7 +104,7 @@ function AuthenticatedApp() {
   // Kirjan yksityiskohtainen näkymä korvaa kaiken riippumatta muusta tilasta
   if (viewingBookId !== null) {
     return (
-      <div className="min-h-screen bg-forest">
+      <div className="min-h-dvh bg-forest">
         {header}
         <BookDetail
           bookId={viewingBookId}
@@ -118,7 +118,7 @@ function AuthenticatedApp() {
 
   if (currentView === "editions") {
     return (
-      <div className="min-h-screen bg-forest">
+      <div className="min-h-dvh bg-forest">
         {header}
         <EditionManagement onBack={() => setCurrentView("tabs")} />
       </div>
@@ -130,7 +130,7 @@ function AuthenticatedApp() {
   // samaan välilehteen jossa oltiin ennen sivuvalikon avaamista
   if (currentView === "import") {
     return (
-      <div className="min-h-screen bg-forest">
+      <div className="min-h-dvh bg-forest">
         {header}
         <Import onBack={() => setCurrentView("tabs")} />
       </div>
@@ -138,7 +138,7 @@ function AuthenticatedApp() {
   }
 
   return (
-    <div className="min-h-screen bg-forest pb-[calc(5rem+env(safe-area-inset-bottom))]">
+    <div className="min-h-dvh bg-forest pb-[calc(5rem+env(safe-area-inset-bottom))]">
       {header}
 
       <SideMenu
@@ -176,7 +176,7 @@ function AuthenticatedApp() {
         {activeTab === "selaa" && <Discover onSelectBook={setViewingBookId} />}
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 flex border-t border-paper/10 bg-forest/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+      <nav className="fixed inset-x-0 bottom-0 flex border-t border-paper/10 bg-forest/95 pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] backdrop-blur">
         {TABS.map(({ id, label, icon: Icon }) => {
           const isActive = activeTab === id;
           return (
@@ -199,9 +199,9 @@ function AuthenticatedApp() {
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-forest pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+    <div className="min-h-dvh bg-forest pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       <SignedOut>
-        <div className="flex min-h-screen items-center justify-center">
+        <div className="flex min-h-dvh items-center justify-center">
           <SignIn />
         </div>
       </SignedOut>

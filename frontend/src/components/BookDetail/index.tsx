@@ -301,7 +301,7 @@ export default function BookDetail({
                       <button
                         onClick={() => setEditingEntry(matchingEntry)}
                         title="Muokkaa kommenttia"
-                        className="shrink-0 rounded-full p-1 text-ink/40 hover:bg-ink/5 hover:text-ink"
+                        className="-my-2 -mr-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink/40 hover:bg-ink/5 hover:text-ink"
                       >
                         <Pencil size={13} />
                       </button>

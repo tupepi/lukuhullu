@@ -131,7 +131,7 @@ export default function EditionsManager({
                       onClick={(e) => handleDelete(ed, e)}
                       disabled={busy}
                       title="Poista painos pysyvästi"
-                      className="shrink-0 rounded-full p-1.5 text-wine transition hover:bg-wine/10 disabled:opacity-50"
+                      className="-my-2 -mr-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-wine transition hover:bg-wine/10 disabled:opacity-50"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -151,7 +151,7 @@ export default function EditionsManager({
                 onClick={(e) => handleDelete(editions[0], e)}
                 disabled={busy}
                 title="Poista painos pysyvästi"
-                className="shrink-0 rounded-full p-1.5 text-wine transition hover:bg-wine/10 disabled:opacity-50"
+                className="-my-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-wine transition hover:bg-wine/10 disabled:opacity-50"
               >
                 <Trash2 size={16} />
               </button>

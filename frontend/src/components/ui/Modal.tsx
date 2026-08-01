@@ -21,14 +21,18 @@ export default function Modal({
       onClick={onClose}
     >
       <div
-        className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-t-xl bg-paper p-5 shadow-xl sm:rounded-xl"
+        className="max-h-[85dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-xl bg-paper p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-xl sm:rounded-xl sm:pb-5"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
           <h3 className="font-display text-lg text-ink">{title}</h3>
           <button
             onClick={onClose}
-            className="rounded-full p-1.5 text-ink/50 hover:bg-ink/5"
+            aria-label="Sulje"
+            // Kosketusalue vähintään 44x44px vaikka itse ikoni (18px) on
+            // pienempi - h-11 w-11 (44px) + flex-keskitys, ei kasvateta
+            // ikonia itseään.
+            className="-mr-2 -mt-2 flex h-11 w-11 items-center justify-center rounded-full text-ink/50 hover:bg-ink/5"
           >
             <X size={18} />
           </button>

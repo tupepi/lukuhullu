@@ -72,6 +72,7 @@ export default function ReadingDetailsFields({
           </span>
           <input
             type="number"
+            inputMode="numeric"
             value={readYear}
             onChange={(e) => onReadYearChange(e.target.value)}
             placeholder={String(new Date().getFullYear())}
@@ -84,6 +85,7 @@ export default function ReadingDetailsFields({
           </span>
           <input
             type="number"
+            inputMode="numeric"
             min={1}
             max={12}
             value={readMonth}
@@ -97,6 +99,7 @@ export default function ReadingDetailsFields({
           </span>
           <input
             type="number"
+            inputMode="numeric"
             min={1}
             max={31}
             value={readDay}

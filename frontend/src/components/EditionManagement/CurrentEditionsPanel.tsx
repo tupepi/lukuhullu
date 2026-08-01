@@ -67,7 +67,7 @@ export default function CurrentEditionsPanel({
                 onClick={() => onUnmerge(ed.bookId)}
                 disabled={busy}
                 title="Irrota ryhmästä"
-                className="rounded-full p-1.5 text-wine transition hover:bg-wine/10 disabled:opacity-50"
+                className="flex h-11 w-11 items-center justify-center rounded-full text-wine transition hover:bg-wine/10 disabled:opacity-50"
               >
                 <Unlink size={16} />
               </button>
@@ -76,7 +76,7 @@ export default function CurrentEditionsPanel({
                   onClick={() => onDelete(ed.bookId, ed.title)}
                   disabled={busy}
                   title="Poista painos pysyvästi"
-                  className="rounded-full p-1.5 text-wine transition hover:bg-wine/10 disabled:opacity-50"
+                  className="flex h-11 w-11 items-center justify-center rounded-full text-wine transition hover:bg-wine/10 disabled:opacity-50"
                 >
                   <Trash2 size={16} />
                 </button>
@@ -93,7 +93,7 @@ export default function CurrentEditionsPanel({
               onClick={() => onDelete(editions[0].bookId, editions[0].title)}
               disabled={busy}
               title="Poista painos pysyvästi"
-              className="rounded-full p-1.5 text-wine transition hover:bg-wine/10 disabled:opacity-50"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-wine transition hover:bg-wine/10 disabled:opacity-50"
             >
               <Trash2 size={16} />
             </button>

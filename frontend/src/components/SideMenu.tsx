@@ -24,12 +24,12 @@ export default function SideMenu({
   return (
     <div className="fixed inset-0 z-40 bg-black/50" onClick={onClose}>
       <div
-        className="flex h-full w-72 flex-col bg-paper px-5 py-4 text-ink shadow-xl"
+        className="flex h-full w-72 flex-col bg-paper px-5 py-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))] pl-[calc(1.25rem+env(safe-area-inset-left))] text-ink shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="mb-6 self-end rounded-full p-2 text-ink/60 hover:bg-ink/5"
+          className="-mr-2.5 mb-6 flex h-11 w-11 items-center justify-center self-end rounded-full text-ink/60 hover:bg-ink/5"
           aria-label="Sulje valikko"
         >
           <X size={20} />

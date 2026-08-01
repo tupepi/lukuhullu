@@ -85,7 +85,7 @@ export default function ImportRow({ row, updateRow }: Props) {
             <button
               onClick={() => setEditingMatch(true)}
               title="Muokkaa osumaa"
-              className="shrink-0 rounded-full p-1.5 text-ink/40 transition hover:bg-ink/5 hover:text-ink"
+              className="-my-2 -mr-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink/40 transition hover:bg-ink/5 hover:text-ink"
             >
               <Pencil size={14} />
             </button>
@@ -147,13 +147,22 @@ export default function ImportRow({ row, updateRow }: Props) {
               </div>
             )}
 
+            {/* Ei <form>-elementtiä tässä - koko rivi on <label>:n sisällä
+                (checkboxin label yllä), eikä form ole sallittu sisältö
+                label:n sisällä. onKeyDown korvaa formin Enter-käsittelyn. */}
             <div className="mt-2 flex gap-2">
               <input
-                type="text"
+                type="search"
                 value={row.searchQuery}
                 onChange={(e) =>
                   updateRow(row.rowIndex, { searchQuery: e.target.value })
                 }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleSearch();
+                  }
+                }}
                 placeholder="Muokkaa hakusanaa..."
                 className={`${inputClass} flex-1`}
               />
@@ -207,6 +216,7 @@ export default function ImportRow({ row, updateRow }: Props) {
         </select>
         <input
           type="number"
+          inputMode="numeric"
           placeholder="Vuosi"
           value={row.readYear}
           onChange={(e) =>
@@ -216,6 +226,7 @@ export default function ImportRow({ row, updateRow }: Props) {
         />
         <input
           type="number"
+          inputMode="numeric"
           placeholder="Kk"
           min={1}
           max={12}
@@ -227,6 +238,7 @@ export default function ImportRow({ row, updateRow }: Props) {
         />
         <input
           type="number"
+          inputMode="numeric"
           placeholder="Pv"
           min={1}
           max={31}

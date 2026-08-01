@@ -64,11 +64,13 @@ export default function BookSearch({ onSelectBook }: Props) {
     <div className="pt-2">
       <form onSubmit={handleSearch} className="mb-6 flex gap-2">
         <input
-          type="text"
+          type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Hae kirjan nimellä tai ISBN:llä..."
-          className="flex-1 rounded-full bg-paper px-4 py-2 font-body text-sm text-ink placeholder:text-ink/40 focus:outline-none focus:ring-2 focus:ring-brass"
+          // text-base (16px), ei text-sm - ks. styles/buttons.ts:n inputClass-
+          // kommentti iOS-zoomauksesta.
+          className="flex-1 rounded-full bg-paper px-4 py-2 font-body text-base text-ink placeholder:text-ink/40 focus:outline-none focus:ring-2 focus:ring-brass"
         />
         <button
           type="submit"

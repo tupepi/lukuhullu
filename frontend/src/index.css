@@ -22,3 +22,23 @@ body {
   color: var(--color-paper);
   font-family: var(--font-body);
 }
+
+/* Kosketusruutu-/mobiilikäytettävyys (ei koske pinch-zoomin täyskieltoa -
+   user-scalable=no ei ole käytössä saavutettavuussyistä). */
+html,
+body {
+  /* Poistaa tuplanapautus-zoomauksen napeista/linkeistä/riveistä koko
+     sovelluksessa - selain ei enää tulkitse nopeaa kahta napautusta
+     zoomauskomennoksi millään interaktiivisella tai ei-interaktiivisella
+     elementillä. Ei vaikuta pinch-zoomiin (kahden sormen nipistys), joka
+     jää tarkoituksella käyttöön. */
+  touch-action: manipulation;
+
+  /* Estää Androidin natiivin "vedä päivittääksesi" -eleen laukeamisen kun
+     listan (esim. Kirjastoni-hylly, Selaa-feed) tai koko sivun alkuun
+     vieritetään ja jatketaan vielä ylöspäin - sovellus ei käytä erillisiä
+     overflow-y-auto-kontainereita näkymissä, vaan koko dokumentti/body
+     vierittyy yhtenä ikkunana, joten "contain" asetetaan tässä ylätasolla
+     eikä jokaisessa listakomponentissa erikseen. */
+  overscroll-behavior-y: contain;
+}

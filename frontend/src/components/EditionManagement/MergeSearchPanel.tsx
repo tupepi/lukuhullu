@@ -47,7 +47,8 @@ export default function MergeSearchPanel({
     });
   }
 
-  async function handleSearch() {
+  async function handleSearch(e?: React.FormEvent) {
+    e?.preventDefault();
     if (!searchQuery.trim()) return;
     setSearching(true);
     try {
@@ -76,16 +77,16 @@ export default function MergeSearchPanel({
       <p className="mb-2 font-body text-xs text-ink/60">
         Hae yhdistettävä painos tietokannoista:
       </p>
-      <div className="flex gap-2">
+      <form onSubmit={handleSearch} className="flex gap-2">
         <input
-          type="text"
+          type="search"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Hae nimellä tai ISBN:llä..."
           className={`${inputClass} flex-1`}
         />
         <button
-          onClick={handleSearch}
+          type="submit"
           disabled={searching}
           className={secondaryButtonClass}
         >
@@ -96,7 +97,7 @@ export default function MergeSearchPanel({
           )}
           {searching ? "Haetaan..." : "Hae"}
         </button>
-      </div>
+      </form>
 
       {filteredResults && filteredResults.length === 0 && (
         <p className="mt-2 font-body text-xs text-ink/50">

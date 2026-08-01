@@ -38,7 +38,7 @@ export default function DisplayNamePrompt({ onSaved }: Props) {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-forest px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-forest px-4">
       <div className="w-full max-w-sm rounded-xl bg-paper p-6 shadow-xl">
         <div className="mb-4 flex justify-center">
           <div className="rounded-full bg-brass/15 p-3 text-brass">

@@ -1,5 +1,9 @@
+// text-base (16px) EIKÄ text-sm (14px) - iOS Safari zoomaa automaattisesti
+// näkymän jos fokusoidun input/textarea/select-elementin fontti on alle
+// 16px, mikä tuntuisi käyttäjästä sovelluksen "hyppäävän" joka kerta kun
+// jokin näistä kentistä fokusoituu.
 export const inputClass =
-  "rounded-md bg-forest/5 border border-ink/15 px-2.5 py-1.5 font-body text-sm text-ink placeholder:text-ink/40 focus:outline-none focus:ring-2 focus:ring-brass";
+  "rounded-md bg-forest/5 border border-ink/15 px-2.5 py-1.5 font-body text-base text-ink placeholder:text-ink/40 focus:outline-none focus:ring-2 focus:ring-brass";
 
 export const primaryButtonClass =
   "rounded-full bg-brass px-4 py-1.5 font-body text-sm font-semibold text-forest transition hover:brightness-110 disabled:opacity-50";

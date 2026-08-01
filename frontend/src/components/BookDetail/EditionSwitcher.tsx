@@ -28,7 +28,8 @@ export default function EditionSwitcher({
   >(null);
   const [editionSearching, setEditionSearching] = useState(false);
 
-  async function handleEditionSearch() {
+  async function handleEditionSearch(e?: React.FormEvent) {
+    e?.preventDefault();
     if (!editionQuery.trim()) return;
     setEditionSearching(true);
     try {
@@ -81,16 +82,22 @@ export default function EditionSwitcher({
         </p>
       )}
 
-      <div className="flex gap-2">
+      {/* Oma <form> (ei mikään ulompi elementti tässä ole form) jotta
+          type="search" -kentän mobiilinäppäimistön "Hae"/"Go"-painike ja
+          Enter-näppäin oikeasti laukaisevat haun eivätkä jää toimimattomiksi. */}
+      <form
+        onSubmit={handleEditionSearch}
+        className="flex gap-2"
+      >
         <input
-          type="text"
+          type="search"
           value={editionQuery}
           onChange={(e) => setEditionQuery(e.target.value)}
           placeholder="Hae oikea painos nimellä tai ISBN:llä..."
           className={`${inputClass} flex-1 font-body`}
         />
         <button
-          onClick={handleEditionSearch}
+          type="submit"
           disabled={editionSearching}
           className={secondaryButtonClass}
         >
@@ -101,7 +108,7 @@ export default function EditionSwitcher({
           )}
           {editionSearching ? "Haetaan..." : "Hae"}
         </button>
-      </div>
+      </form>
 
       {editionResults && editionResults.length === 0 && (
         <p className="mt-2 font-body text-xs text-ink/50">Ei tuloksia.</p>
