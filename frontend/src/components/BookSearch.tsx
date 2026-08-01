@@ -41,6 +41,7 @@ export default function BookSearch({ onSelectBook }: Props) {
     try {
       const { bookId } = await ensureBook(
         {
+          localBookId: book.localBookId,
           openLibraryId: book.openLibraryId,
           googleBooksId: book.googleBooksId,
           title: book.title,

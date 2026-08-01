@@ -110,6 +110,7 @@ export default function EditionManagement({ onBack }: Props) {
         selectedRoot.representative.id,
         {
           targetExternal: {
+            localBookId: result.localBookId,
             openLibraryId: result.openLibraryId,
             googleBooksId: result.googleBooksId,
             title: result.title,

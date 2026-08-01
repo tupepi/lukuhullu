@@ -49,6 +49,7 @@ export default function EditionSwitcher({
     try {
       const { bookId } = await ensureBook(
         {
+          localBookId: result.localBookId,
           openLibraryId: result.openLibraryId,
           googleBooksId: result.googleBooksId,
           title: result.title,

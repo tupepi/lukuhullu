@@ -164,6 +164,11 @@ export async function deleteUserBook(
 
 export async function ensureBook(
   book: {
+    // Jos hakutulos tuli omasta tietokannasta (ks. BookSearchResult.localBookId),
+    // välitetään sen rivin id suoraan - muuten backend joutuisi etsimään
+    // riviä uudelleen openLibraryId/googleBooksId perusteella, mikä epäonnistuu
+    // manuaalisesti lisätyille kirjoille (molemmat null) ja loisi duplikaatin.
+    localBookId?: number;
     openLibraryId: string | null;
     googleBooksId: string | null;
     title: string;

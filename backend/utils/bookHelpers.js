@@ -9,6 +9,7 @@ import pool from "../db.js";
 // tai luo uuden rivin books-tauluun jos sitä ei löydy. Palauttaa aina bookId:n.
 // Käytetään sekä routes/userBooks.js:n POST-reitissä että routes/import.js:ssä.
 export async function findOrCreateBook({
+  localBookId,
   openLibraryId,
   googleBooksId,
   title,
@@ -18,6 +19,16 @@ export async function findOrCreateBook({
   subjects,
   isbn,
 }) {
+  // Jos kutsuja jo tietää books-rivin id:n (esim. haku omasta tietokannasta,
+  // ks. routes/booksSearch.js:n mapDbRow), käytetään sitä suoraan eikä
+  // yritetä etsiä/luoda riviä uudelleen tunnisteiden perusteella - sama
+  // oikotie kuin routes/import.js:n existingBookId. Tämä on pakollista
+  // manuaalisesti lisätyille/aiemmin duplikoituneille kirjoille, joilla
+  // sekä open_library_id että google_books_id ovat null (ks. kommentti alla).
+  if (localBookId) {
+    return localBookId;
+  }
+
   // Huom: jos molemmat tunnisteet ovat null (manuaalinen kirjan lisäys ilman
   // API-osumaa, ks. PAATOKSET.md: Manuaalinen kirjan lisäys), tämä kysely ei
   // koskaan löydä osumaa vahingossa. SQL:ssä "sarake = NULL" palauttaa aina
@@ -25,12 +36,12 @@ export async function findOrCreateBook({
   // ei täsmää mihinkään riviin - jokainen kutsu luo siis aina uuden
   // books-rivin kun molemmat tunnisteet ovat null. Tämä on haluttu käytös
   // AINOASTAAN kun kutsuja ei vielä tiedä books-rivin id:tä (esim. tuore
-  // manuaalinen lisäys tai hakutulos) - jos id on jo tiedossa (esim. olemassa
-  // olevalle painokselle kirjataan uusi lukukerta), kutsujan pitää käyttää
-  // sitä id:tä suoraan eikä kutsua tätä funktiota, tai jokainen kutsu luo
-  // vahingossa uuden duplikaattikirjan (ks. PAATOKSET.md: bugikorjaus
-  // "luetuksi-merkintä loi duplikaatin painoksen", routes/userBooks.js:n
-  // POST-reitin bookId-oikotie).
+  // manuaalinen lisäys tai ulkoisen API:n hakutulos) - jos id on jo tiedossa
+  // (esim. haku omasta tietokannasta, ks. localBookId yllä), kutsujan pitää
+  // käyttää sitä id:tä suoraan eikä kutsua tätä funktiota tunnisteiden
+  // kanssa, tai jokainen kutsu luo vahingossa uuden duplikaattikirjan
+  // (ks. PAATOKSET.md: bugikorjaus "luetuksi-merkintä loi duplikaatin
+  // painoksen", routes/userBooks.js:n POST-reitin bookId-oikotie).
   const existing = await pool.query(
     `SELECT id FROM books WHERE open_library_id = $1 OR google_books_id = $2`,
     [openLibraryId || null, googleBooksId || null],

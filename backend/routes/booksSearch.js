@@ -21,6 +21,12 @@ function mapDbRow(row) {
     yearPublished: row.year_published,
     subjects: row.api_subjects || [],
     isbn: row.isbn,
+    // Rivin oma id - pakollinen jotta findOrCreateBook (bookHelpers.js) voi
+    // käyttää sitä suoraan, sen sijaan että yrittäisi löytää rivin uudelleen
+    // open_library_id/google_books_id perusteella. Ilman tätä kirjat joilla
+    // molemmat ovat null (manuaalisesti lisätyt) eivät koskaan täsmäisi
+    // omaan itseensä haussa, ja jokainen valinta loisi uuden duplikaattirivin.
+    localBookId: row.id,
   };
 }
 

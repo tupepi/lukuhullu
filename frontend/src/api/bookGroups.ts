@@ -10,6 +10,10 @@ import { API_BASE } from "./client";
 export interface MergeTarget {
   targetBookId?: number;
   targetExternal?: {
+    // Ks. api/books.ts:n ensureBook - sama oikotie olemassa olevalle
+    // books-riville, jotta hakutulosta klikatessa ei luoda duplikaattia
+    // kirjoista joiden openLibraryId/googleBooksId ovat molemmat null.
+    localBookId?: number;
     openLibraryId: string | null;
     googleBooksId: string | null;
     title: string;

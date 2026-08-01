@@ -26,6 +26,7 @@ const router = express.Router();
 // (ja sen mukana tulevan read_year-validoinnin, ks. PAATOKSET.md).
 router.post("/ensure", requireAuth(), async (req, res) => {
   const {
+    localBookId,
     openLibraryId,
     googleBooksId,
     title,
@@ -42,6 +43,7 @@ router.post("/ensure", requireAuth(), async (req, res) => {
 
   try {
     const bookId = await findOrCreateBook({
+      localBookId,
       openLibraryId,
       googleBooksId,
       title,
