@@ -81,11 +81,18 @@ router.get("/", requireAuth(), async (req, res) => {
     }
 
     // Suosituimmuusjärjestys: lukukerrat (luetut + kesken jääneet) ja
-    // kommentit lasketaan yhteen samaan pisteeseen - esim. 3 lukukertaa
-    // ilman kommentteja (pist. 3) on vähemmän kuin 2 lukukertaa + 2
-    // kommenttia (pist. 4). Tasapisteissä uusin aktiviteetti voittaa.
+    // kommentit lasketaan yhteen samaan pisteeseen, kommentti painotettuna
+    // 1.5x lukukertaan nähden (kommentointi on aktiivisempi osallistumisen
+    // muoto kuin pelkkä statuksen merkintä) - esim. 3 lukukertaa ilman
+    // kommentteja (pist. 3) on vähemmän kuin 2 lukukertaa + 1 kommentti
+    // (pist. 3.5). Tasapisteissä uusin aktiviteetti voittaa.
+    const COMMENT_WEIGHT = 1.5;
     function score(book) {
-      return book.readerCount + book.abandonedCount + book.comments.length;
+      return (
+        book.readerCount +
+        book.abandonedCount +
+        book.comments.length * COMMENT_WEIGHT
+      );
     }
 
     // "recent" järjestää pelkän tuoreimman aktiviteetin mukaan, "popularity"
