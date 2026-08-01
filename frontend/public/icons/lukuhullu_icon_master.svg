@@ -1,0 +1,38 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Tausta: pyöristetty neliö, täyttää koko alueen (maskable-yhteensopiva) -->
+  <rect width="1024" height="1024" rx="220" fill="#8B4530"/>
+
+  <!-- Avoin kirja, keskitetty "turva-alueelle" (n. 80% keskustasta) -->
+  <g transform="translate(512, 540)">
+    <!-- Vasen sivu -->
+    <path d="M -280 -40
+             C -280 -140, -180 -180, -20 -170
+             L -20 200
+             C -180 190, -280 150, -280 60
+             Z"
+          fill="#FBF3E7"/>
+    <!-- Oikea sivu -->
+    <path d="M 280 -40
+             C 280 -140, 180 -180, 20 -170
+             L 20 200
+             C 180 190, 280 150, 280 60
+             Z"
+          fill="#FBF3E7"/>
+    <!-- Selkä/keskiviiva -->
+    <rect x="-8" y="-172" width="16" height="374" rx="8" fill="#8B4530"/>
+
+    <!-- Rivi-viivat vasemmalla sivulla -->
+    <line x1="-230" y1="-90" x2="-70" y2="-100" stroke="#D9C4A8" stroke-width="10" stroke-linecap="round"/>
+    <line x1="-230" y1="-40" x2="-70" y2="-52" stroke="#D9C4A8" stroke-width="10" stroke-linecap="round"/>
+    <line x1="-230" y1="10" x2="-70" y2="0" stroke="#D9C4A8" stroke-width="10" stroke-linecap="round"/>
+
+    <!-- Rivi-viivat oikealla sivulla -->
+    <line x1="230" y1="-90" x2="70" y2="-100" stroke="#D9C4A8" stroke-width="10" stroke-linecap="round"/>
+    <line x1="230" y1="-40" x2="70" y2="-52" stroke="#D9C4A8" stroke-width="10" stroke-linecap="round"/>
+    <line x1="230" y1="10" x2="70" y2="0" stroke="#D9C4A8" stroke-width="10" stroke-linecap="round"/>
+  </g>
+
+  <!-- Pieni "innostus"-tähti viittaamaan "hullu"-teemaan -->
+  <path d="M 760 260 L 778 302 L 822 310 L 790 340 L 798 384 L 760 362 L 722 384 L 730 340 L 698 310 L 742 302 Z"
+        fill="#F2B84B"/>
+</svg>

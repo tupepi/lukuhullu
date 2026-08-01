@@ -138,7 +138,7 @@ function AuthenticatedApp() {
   }
 
   return (
-    <div className="min-h-screen bg-forest pb-20">
+    <div className="min-h-screen bg-forest pb-[calc(5rem+env(safe-area-inset-bottom))]">
       {header}
 
       <SideMenu
@@ -176,7 +176,7 @@ function AuthenticatedApp() {
         {activeTab === "selaa" && <Discover onSelectBook={setViewingBookId} />}
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 flex border-t border-paper/10 bg-forest/95 backdrop-blur">
+      <nav className="fixed inset-x-0 bottom-0 flex border-t border-paper/10 bg-forest/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
         {TABS.map(({ id, label, icon: Icon }) => {
           const isActive = activeTab === id;
           return (
@@ -199,7 +199,7 @@ function AuthenticatedApp() {
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-forest">
+    <div className="min-h-screen bg-forest pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       <SignedOut>
         <div className="flex min-h-screen items-center justify-center">
           <SignIn />
