@@ -1,41 +1,82 @@
 import { useAuth } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
+import type { MouseEvent } from "react";
+import { Trash2 } from "lucide-react";
 import type { Edition } from "../../types";
-import { getEditions } from "../../api/bookGroups";
+import { getEditions, deleteBook } from "../../api/bookGroups";
 import Spinner from "../ui/Spinner";
 
 interface Props {
   bookId: number;
   onSelectEdition: (bookId: number) => void;
   currentBookId: number;
+  // Kutsutaan kun käyttäjä poistaa painoksen jota PARHAILLAAN katsotaan
+  // tällä sivulla - tälle bookId:lle ei ole enää mitään näytettävää, joten
+  // vanhempi (BookDetail/index.tsx) navigoi takaisin edelliseen näkymään.
+  onDeletedCurrent: () => void;
 }
 
-// Näyttää nyt vain ryhmän jäsenten listauksen (klikattava navigointi
-// painosten välillä, ks. onSelectEdition) - ei enää hakua/yhdistämistä/
-// irrottamista. Nämä toiminnot siirtyivät omalle "Hallitse painoksia"
-// -sivulle (components/EditionManagement.tsx, tavoitettavissa sivu-
-// valikosta), koska ne olivat käytännössä harvinaisempia, "ylläpidollisia"
-// toimintoja jotka eivät kuulu jokaisen kirjan sivun perusnäkymään.
+function isManualEdition(ed: Edition) {
+  return ed.openLibraryId === null && ed.googleBooksId === null;
+}
+
+// Näyttää ryhmän jäsenten listauksen (klikattava navigointi painosten
+// välillä, ks. onSelectEdition) sekä poisto-painikkeen manuaalisesti
+// lisätyille painoksille. Ei hakua/yhdistämistä/irrottamista - nämä
+// toiminnot asuvat omalla "Hallitse painoksia" -sivulla (components/
+// EditionManagement/, tavoitettavissa sivuvalikosta), koska ne olivat
+// käytännössä harvinaisempia, "ylläpidollisia" toimintoja jotka eivät
+// kuulu jokaisen kirjan sivun perusnäkymään (ks. PAATOKSET.md). Poisto on
+// tästä säännöstä tietoinen poikkeus: se on hyödyllinen suoraan sen
+// painoksen sivulla jota ollaan poistamassa, eikä vaadi ensin siirtymistä
+// toiseen näkymään.
 export default function EditionsManager({
   bookId,
   onSelectEdition,
   currentBookId,
+  onDeletedCurrent,
 }: Props) {
   const { getToken } = useAuth();
   const [editions, setEditions] = useState<Edition[] | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function loadEditions() {
+    try {
+      const data = await getEditions(bookId, getToken);
+      setEditions(data.editions);
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   useEffect(() => {
-    async function loadEditions() {
-      try {
-        const data = await getEditions(bookId, getToken);
-        setEditions(data.editions);
-      } catch (err) {
-        console.error(err);
-      }
-    }
     loadEditions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookId]);
+
+  async function handleDelete(ed: Edition, e: MouseEvent) {
+    // Rivin oma onClick navigoi kyseiseen painokseen - ilman tätä poisto-
+    // painikkeen klikkaus laukaisisi myös sen (bubbling)
+    e.stopPropagation();
+    const vahvistettu = window.confirm(
+      `Poistetaanko "${ed.title}" pysyvästi? Tämä poistaa myös kaikkien käyttäjien lukumerkinnät tästä painoksesta eikä toimintoa voi perua.`,
+    );
+    if (!vahvistettu) return;
+
+    setBusy(true);
+    try {
+      await deleteBook(ed.bookId, getToken);
+      if (ed.bookId === currentBookId) {
+        onDeletedCurrent();
+        return;
+      }
+      await loadEditions();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <section className="mt-6">
@@ -85,13 +126,37 @@ export default function EditionsManager({
                       {ed.isRoot && " · ryhmän edustaja Selaa-näkymässä"}
                     </p>
                   </div>
+                  {isManualEdition(ed) && (
+                    <button
+                      onClick={(e) => handleDelete(ed, e)}
+                      disabled={busy}
+                      title="Poista painos pysyvästi"
+                      className="shrink-0 rounded-full p-1.5 text-wine transition hover:bg-wine/10 disabled:opacity-50"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </li>
               );
             })}
           </ul>
         )}
         {editions && editions.length === 1 && (
-          <p className="font-body text-sm text-ink/50">Ei muita versioita.</p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="font-body text-sm text-ink/50">
+              Ei muita versioita.
+            </p>
+            {isManualEdition(editions[0]) && (
+              <button
+                onClick={(e) => handleDelete(editions[0], e)}
+                disabled={busy}
+                title="Poista painos pysyvästi"
+                className="shrink-0 rounded-full p-1.5 text-wine transition hover:bg-wine/10 disabled:opacity-50"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
+          </div>
         )}
       </div>
     </section>

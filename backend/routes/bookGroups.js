@@ -4,7 +4,7 @@
 // validoi pyynnöt, kutsuu sitä logiikkaa ja muotoilee HTTP-vastaukset.
 // Kytketty index.js:ssä polkuun /api/books, joten reitit ovat lopulta
 // /api/books/ensure, /api/books (GET), /api/books/:bookId/merge, /unmerge,
-// /editions ja /cover-url.
+// /editions, /cover-url ja /api/books/:bookId (DELETE).
 import express from "express";
 import { requireAuth } from "@clerk/express";
 import pool from "../db.js";
@@ -170,6 +170,50 @@ router.put("/:bookId/cover-url", requireAuth(), async (req, res) => {
   } catch (error) {
     console.error("Kansikuvan päivitys epäonnistui:", error);
     res.status(500).json({ error: "Kansikuvan päivitys epäonnistui" });
+  }
+});
+
+// DELETE /api/books/:bookId - poistaa manuaalisesti lisätyn painoksen
+// pysyvästi. Vain manuaalisille kirjoille (ei open_library_id:tä eikä
+// google_books_id:tä, ks. PAATOKSET.md: Manuaalinen kirjan lisäys) - API-
+// lähteistä löytyviä kirjoja EI voi poistaa, koska ne ovat jaettua "totuutta"
+// ulkoisesta tietolähteestä eikä yksittäisen käyttäjän omaa dataa.
+// Books-taulu on jaettu kaikkien käyttäjien kesken (ks. cover-url-reitin
+// kommentti yllä) - poisto vaikuttaa siis KAIKKIIN käyttäjiin joilla on
+// lukumerkintöjä tästä painoksesta (user_books.book_id REFERENCES books(id)
+// ON DELETE CASCADE, ks. PAATOKSET.md-skeema). Frontend näyttää tästä
+// selkeän varoituksen ennen poistoa (window.confirm), koska toimintoa ei
+// voi perua. Kuka tahansa kirjautunut käyttäjä saa poistaa (ei omistajuus-
+// tarkistusta) - sama peruste kuin cover-url-reitillä.
+router.delete("/:bookId", requireAuth(), async (req, res) => {
+  const { bookId } = req.params;
+  try {
+    const bookResult = await pool.query(
+      `SELECT open_library_id, google_books_id FROM books WHERE id = $1`,
+      [bookId],
+    );
+    if (bookResult.rows.length === 0) {
+      return res.status(404).json({ error: "Kirjaa ei löytynyt" });
+    }
+    const { open_library_id, google_books_id } = bookResult.rows[0];
+    if (open_library_id !== null || google_books_id !== null) {
+      return res.status(400).json({
+        error: "Vain manuaalisesti lisättyjä painoksia voi poistaa",
+      });
+    }
+
+    // Irrotetaan kirja ensin ryhmästään (sama logiikka kuin /unmerge-
+    // reitissä) ENNEN poistoa. Jos kirja on ryhmän root jolla on jäseniä,
+    // unmergeBook valitsee ryhmälle uuden rootin ja siirtää loput jäsenet
+    // sen alle - ilman tätä work_group_id-itseviittauksen FK-rajoite
+    // estäisi DELETE:n (poistettavaan kirjaan osoittaisi vielä muita rivejä).
+    await unmergeBook(Number(bookId));
+
+    await pool.query(`DELETE FROM books WHERE id = $1`, [bookId]);
+    res.status(204).send();
+  } catch (error) {
+    console.error("Painoksen poisto epäonnistui:", error);
+    res.status(500).json({ error: "Painoksen poisto epäonnistui" });
   }
 });
 

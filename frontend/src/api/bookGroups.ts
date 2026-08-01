@@ -80,6 +80,25 @@ export async function updateCoverUrl(
   return res.json();
 }
 
+// Poistaa manuaalisesti lisätyn painoksen pysyvästi (ks. routes/
+// bookGroups.js:n DELETE /:bookId - backend hylkää pyynnön 400:lla jos
+// kirjalla on openLibraryId/googleBooksId, tämä on siis vain manuaalisille
+// kirjoille tarkoitettu toiminto).
+export async function deleteBook(
+  bookId: number,
+  getToken: () => Promise<string | null>,
+): Promise<void> {
+  const token = await getToken();
+  const res = await fetch(`${API_BASE}/api/books/${bookId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error ?? "Poisto epäonnistui");
+  }
+}
+
 export async function getBooks(
   getToken: () => Promise<string | null>,
 ): Promise<BookGroupsResponse> {

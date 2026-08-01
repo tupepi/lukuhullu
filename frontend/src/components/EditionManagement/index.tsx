@@ -2,7 +2,13 @@ import { useAuth } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import type { BookGroupEntry, BookSearchResult, Edition } from "../../types";
-import { getEditions, mergeBooks, unmergeBook, getBooks } from "../../api/bookGroups";
+import {
+  getEditions,
+  mergeBooks,
+  unmergeBook,
+  deleteBook,
+  getBooks,
+} from "../../api/bookGroups";
 import {
   groupByWorkRoot,
   pickRepresentative,
@@ -144,6 +150,64 @@ export default function EditionManagement({ onBack }: Props) {
     }
   }
 
+  // Poistaa manuaalisesti lisätyn painoksen pysyvästi (ks. PAATOKSET.md).
+  // Kolme tapausta poiston jälkeen sen mukaan mikä painos poistettiin:
+  //  - poistettu painos oli ryhmän AINOA jäsen -> koko ryhmä katosi,
+  //    palataan ryhmälistaukseen (setSelectedRoot(null))
+  //  - poistettu painos oli TÄMÄN paneelin representative (jonka id:llä
+  //    editions haettiin) -> vaihdetaan representative johonkin jäljellä
+  //    olevaan jäseneen ja haetaan editions sen id:llä uudelleen
+  //    (getEditions toimii millä tahansa ryhmän jäsenen id:llä, joten tämä
+  //    toimii oikein myös jos backend valitsi ryhmälle uuden rootin)
+  //  - poistettu painos oli JOKU MUU jäsen -> representative pysyy samana,
+  //    haetaan vain tuore editions-lista
+  async function handleDelete(editionBookId: number, editionTitle: string) {
+    if (!selectedRoot) return;
+    const vahvistettu = window.confirm(
+      `Poistetaanko "${editionTitle}" pysyvästi? Tämä poistaa myös kaikkien käyttäjien lukumerkinnät tästä painoksesta eikä toimintoa voi perua.`,
+    );
+    if (!vahvistettu) return;
+
+    setBusy(true);
+    try {
+      await deleteBook(editionBookId, getToken);
+      const remaining = (currentEditions ?? []).filter(
+        (ed) => ed.bookId !== editionBookId,
+      );
+
+      if (remaining.length === 0) {
+        setSelectedRoot(null);
+        setCurrentEditions(null);
+      } else {
+        const data = await getEditions(remaining[0].bookId, getToken);
+        setCurrentEditions(data.editions);
+        if (editionBookId === selectedRoot.representative.id) {
+          setSelectedRoot({
+            rootId: data.rootId,
+            representative: {
+              ...selectedRoot.representative,
+              id: remaining[0].bookId,
+              title: remaining[0].title,
+              author: remaining[0].author,
+              cover_url: remaining[0].coverUrl,
+              year_published: remaining[0].yearPublished,
+            },
+          });
+        }
+        setMessage(`"${editionTitle}" poistettu.`);
+      }
+
+      // Taustalla oleva ryhmälista (nimet/määrät) saattoi muuttua poiston
+      // myötä (esim. representative vaihtui) - päivitetään se samalla.
+      const booksData = await getBooks(getToken);
+      setBooks(booksData.results);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function openManualAdd() {
     if (!selectedRoot) return;
     setMessage(null);
@@ -233,6 +297,7 @@ export default function EditionManagement({ onBack }: Props) {
               busy={busy}
               message={message}
               onUnmerge={handleUnmerge}
+              onDelete={handleDelete}
             />
             <MergeSearchPanel
               // key: uusi komponenttiasennus per ryhmä, jotta haku nollautuu

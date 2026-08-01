@@ -317,6 +317,7 @@ export default function BookDetail({
         bookId={detail.bookId}
         onSelectEdition={onNavigateToBook}
         currentBookId={detail.bookId}
+        onDeletedCurrent={onBack}
       />
 
       {/* Popupit renderöidään aivan komponentin lopussa, ehdollisesti -
