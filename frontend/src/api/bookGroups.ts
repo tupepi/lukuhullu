@@ -84,6 +84,38 @@ export async function updateCoverUrl(
   return res.json();
 }
 
+// Päivittää manuaalisesti lisätyn painoksen tiedot (ks. routes/bookGroups.js:n
+// PUT /:bookId - backend hylkää pyynnön 400:lla jos kirjalla on
+// openLibraryId/googleBooksId, sama rajaus kuin deleteBookilla). Ei isbn-
+// kenttää tässä - reitti ei kosketa sitä saraketta (ks. ManualBookForm.tsx:n
+// editBookId-tilan kommentti).
+export interface UpdateBookInput {
+  title: string;
+  author: string | null;
+  coverUrl: string | null;
+  yearPublished: number | null;
+}
+
+export async function updateBook(
+  bookId: number,
+  input: UpdateBookInput,
+  getToken: () => Promise<string | null>,
+): Promise<void> {
+  const token = await getToken();
+  const res = await fetch(`${API_BASE}/api/books/${bookId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error ?? "Painoksen päivitys epäonnistui");
+  }
+}
+
 // Poistaa manuaalisesti lisätyn painoksen pysyvästi (ks. routes/
 // bookGroups.js:n DELETE /:bookId - backend hylkää pyynnön 400:lla jos
 // kirjalla on openLibraryId/googleBooksId, tämä on siis vain manuaalisille

@@ -175,6 +175,54 @@ router.put("/:bookId/cover-url", requireAuth(), async (req, res) => {
   }
 });
 
+// PUT /api/books/:bookId - päivittää manuaalisesti lisätyn painoksen
+// tiedot (nimi/kirjailija/kansikuva/vuosi). Sama rajaus kuin DELETE-
+// reitillä: vain manuaaliset painokset (ei open_library_id:tä eikä
+// google_books_id:tä) saa muokata täältä - API-lähteistä löytyvät kirjat
+// ovat jaettua dataa ulkoisesta lähteestä, ei kenenkään "omaa" lisäystä,
+// eikä niitä pidä voida muuttaa käsin virheellisiksi. isbn EI ole mukana
+// päivitettävissä kentissä (ks. PAATOKSET.md: "Tarkoituksella jätetty
+// myöhemmäksi" - ei ISBN-UI:ta missään näkymässä).
+router.put("/:bookId", requireAuth(), async (req, res) => {
+  const { bookId } = req.params;
+  const { title, author, coverUrl, yearPublished } = req.body;
+
+  if (!title || typeof title !== "string" || !title.trim()) {
+    return res.status(400).json({ error: "title on pakollinen" });
+  }
+
+  try {
+    const bookResult = await pool.query(
+      `SELECT open_library_id, google_books_id FROM books WHERE id = $1`,
+      [bookId],
+    );
+    if (bookResult.rows.length === 0) {
+      return res.status(404).json({ error: "Kirjaa ei löytynyt" });
+    }
+    const { open_library_id, google_books_id } = bookResult.rows[0];
+    if (open_library_id !== null || google_books_id !== null) {
+      return res.status(400).json({
+        error: "Vain manuaalisesti lisättyjä painoksia voi muokata",
+      });
+    }
+
+    await pool.query(
+      `UPDATE books SET title = $1, author = $2, cover_url = $3, year_published = $4 WHERE id = $5`,
+      [
+        title.trim(),
+        author?.trim() || null,
+        coverUrl?.trim() || null,
+        yearPublished || null,
+        bookId,
+      ],
+    );
+    res.status(204).send();
+  } catch (error) {
+    console.error("Painoksen päivitys epäonnistui:", error);
+    res.status(500).json({ error: "Painoksen päivitys epäonnistui" });
+  }
+});
+
 // DELETE /api/books/:bookId - poistaa manuaalisesti lisätyn painoksen
 // pysyvästi. Vain manuaalisille kirjoille (ei open_library_id:tä eikä
 // google_books_id:tä, ks. PAATOKSET.md: Manuaalinen kirjan lisäys) - API-

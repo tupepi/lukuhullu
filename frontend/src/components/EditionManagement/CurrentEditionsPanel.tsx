@@ -1,4 +1,4 @@
-import { Trash2, Unlink } from "lucide-react";
+import { Pencil, Trash2, Unlink } from "lucide-react";
 import type { Edition } from "../../types";
 import Spinner from "../ui/Spinner";
 
@@ -22,6 +22,7 @@ export default function CurrentEditionsPanel({
   message,
   onUnmerge,
   onDelete,
+  onEditManual,
 }: {
   title: string;
   editions: Edition[] | null;
@@ -29,6 +30,7 @@ export default function CurrentEditionsPanel({
   message: string | null;
   onUnmerge: (bookId: number) => void;
   onDelete: (bookId: number, title: string) => void;
+  onEditManual: (edition: Edition) => void;
 }) {
   return (
     <div className="rounded-lg bg-paper p-4 shadow-sm">
@@ -47,7 +49,10 @@ export default function CurrentEditionsPanel({
           {editions.map((ed) => (
             <li
               key={ed.bookId}
-              className="flex items-center gap-3 border-b border-ink/10 pb-2 last:border-0"
+              onClick={() => isManualEdition(ed) && onEditManual(ed)}
+              className={`flex items-center gap-3 border-b border-ink/10 pb-2 last:border-0 ${
+                isManualEdition(ed) ? "cursor-pointer" : ""
+              }`}
             >
               {ed.coverUrl && (
                 <img
@@ -64,7 +69,10 @@ export default function CurrentEditionsPanel({
                 </p>
               </div>
               <button
-                onClick={() => onUnmerge(ed.bookId)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUnmerge(ed.bookId);
+                }}
                 disabled={busy}
                 title="Irrota ryhmästä"
                 className="flex h-11 w-11 items-center justify-center rounded-full text-wine transition hover:bg-wine/10 disabled:opacity-50"
@@ -72,14 +80,30 @@ export default function CurrentEditionsPanel({
                 <Unlink size={16} />
               </button>
               {isManualEdition(ed) && (
-                <button
-                  onClick={() => onDelete(ed.bookId, ed.title)}
-                  disabled={busy}
-                  title="Poista painos pysyvästi"
-                  className="flex h-11 w-11 items-center justify-center rounded-full text-wine transition hover:bg-wine/10 disabled:opacity-50"
-                >
-                  <Trash2 size={16} />
-                </button>
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditManual(ed);
+                    }}
+                    disabled={busy}
+                    title="Muokkaa painoksen tietoja"
+                    className="flex h-11 w-11 items-center justify-center rounded-full text-brass transition hover:bg-brass/10 disabled:opacity-50"
+                  >
+                    <Pencil size={16} />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(ed.bookId, ed.title);
+                    }}
+                    disabled={busy}
+                    title="Poista painos pysyvästi"
+                    className="flex h-11 w-11 items-center justify-center rounded-full text-wine transition hover:bg-wine/10 disabled:opacity-50"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </>
               )}
             </li>
           ))}
@@ -89,14 +113,24 @@ export default function CurrentEditionsPanel({
         <div className="mb-4 flex items-center justify-between gap-2">
           <p className="font-body text-sm text-ink/50">Ei muita versioita.</p>
           {isManualEdition(editions[0]) && (
-            <button
-              onClick={() => onDelete(editions[0].bookId, editions[0].title)}
-              disabled={busy}
-              title="Poista painos pysyvästi"
-              className="flex h-11 w-11 items-center justify-center rounded-full text-wine transition hover:bg-wine/10 disabled:opacity-50"
-            >
-              <Trash2 size={16} />
-            </button>
+            <div className="flex gap-1">
+              <button
+                onClick={() => onEditManual(editions[0])}
+                disabled={busy}
+                title="Muokkaa painoksen tietoja"
+                className="flex h-11 w-11 items-center justify-center rounded-full text-brass transition hover:bg-brass/10 disabled:opacity-50"
+              >
+                <Pencil size={16} />
+              </button>
+              <button
+                onClick={() => onDelete(editions[0].bookId, editions[0].title)}
+                disabled={busy}
+                title="Poista painos pysyvästi"
+                className="flex h-11 w-11 items-center justify-center rounded-full text-wine transition hover:bg-wine/10 disabled:opacity-50"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
           )}
         </div>
       )}

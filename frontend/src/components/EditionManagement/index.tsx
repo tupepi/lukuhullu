@@ -18,7 +18,7 @@ import Spinner from "../ui/Spinner";
 import ManualBookForm from "../ManualBookForm";
 import CurrentEditionsPanel from "./CurrentEditionsPanel";
 import MergeSearchPanel from "./MergeSearchPanel";
-import { secondaryButtonClass } from "../../styles/buttons";
+import { inputClass, secondaryButtonClass } from "../../styles/buttons";
 
 interface Props {
   onBack: () => void;
@@ -53,12 +53,23 @@ export default function EditionManagement({ onBack }: Props) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
+  // Yksinkertainen asiakaspuolen suodatus ryhmälistaukseen (nimi/kirjailija),
+  // ei erillistä backend-hakureittiä - lista on jo kokonaan ladattu tänne
+  // (getBooks) samoin kuin Kirjastoni-näkymässä, joten suodatus tehdään
+  // suoraan ladatusta datasta samaan tapaan kuin Kirjastonin vuosisuodatin.
+  const [searchQuery, setSearchQuery] = useState("");
+
   // Manuaalisen painoksen lisäys (ManualBookForm, jaettu App.tsx:n
   // sivuvalikkovaihtoehdon kanssa). Tässä käytössä uusi painos yhdistetään
   // heti valittuun ryhmään (handleManualSaved) - eri asia kuin App.tsx:n
   // sivuvalikkovaihtoehto, jossa uusi kirja jää oman ryhmänsä ensimmäiseksi
   // jäseneksi.
   const [addingManual, setAddingManual] = useState(false);
+
+  // Manuaalisesti lisätyn painoksen muokkaus (ks. CurrentEditionsPanel.tsx:n
+  // "Muokkaa"-painike/rivi klikkaus). Sama ManualBookForm kuin lisäyksessä,
+  // mutta editBookId-propilla ohjattuna päivitystilaan - ks. handleManualEdited.
+  const [editingEdition, setEditingEdition] = useState<Edition | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -80,6 +91,15 @@ export default function EditionManagement({ onBack }: Props) {
     representative: pickRepresentative(group),
     count: group.length,
   }));
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filteredGroups = normalizedQuery
+    ? groups.filter(({ representative }) => {
+        return (
+          representative.title.toLowerCase().includes(normalizedQuery) ||
+          (representative.author ?? "").toLowerCase().includes(normalizedQuery)
+        );
+      })
+    : groups;
 
   async function handleSelectGroup(
     rootId: number,
@@ -215,6 +235,11 @@ export default function EditionManagement({ onBack }: Props) {
     setAddingManual(true);
   }
 
+  function openEditManual(edition: Edition) {
+    setMessage(null);
+    setEditingEdition(edition);
+  }
+
   // Yhdistää ManualBookFormin juuri luoman kirjan välittömästi valittuun
   // ryhmään mergeBooksilla - muuten uusi painos jäisi omaksi irralliseksi
   // ryhmäkseen (sama periaate kuin OwnEntryFormin "Vaihda painos", ks.
@@ -232,6 +257,38 @@ export default function EditionManagement({ onBack }: Props) {
     setAddingManual(false);
     const data = await getEditions(selectedRoot.representative.id, getToken);
     setCurrentEditions(data.editions);
+  }
+
+  // Päivittää olemassa olevan manuaalisen painoksen tiedot (ei mergeBooks-
+  // kutsua, koska kyseessä on sama books-rivi eikä uusi painos - vain sen
+  // kentät muuttuivat). Jos muokattu painos oli ryhmän representative,
+  // päivitetään myös se (sama periaate kuin handleDeletessa) jotta otsikko/
+  // ryhmälistaus näyttävät heti tuoreet tiedot.
+  async function handleManualEdited(bookId: number, title: string) {
+    if (!selectedRoot) return;
+    setMessage(`"${title}" päivitetty.`);
+    setEditingEdition(null);
+    const data = await getEditions(selectedRoot.representative.id, getToken);
+    setCurrentEditions(data.editions);
+
+    if (bookId === selectedRoot.representative.id) {
+      const edited = data.editions.find((ed) => ed.bookId === bookId);
+      if (edited) {
+        setSelectedRoot({
+          rootId: data.rootId,
+          representative: {
+            ...selectedRoot.representative,
+            title: edited.title,
+            author: edited.author,
+            cover_url: edited.coverUrl,
+            year_published: edited.yearPublished,
+          },
+        });
+      }
+    }
+
+    const booksData = await getBooks(getToken);
+    setBooks(booksData.results);
   }
 
   if (loading) {
@@ -258,12 +315,26 @@ export default function EditionManagement({ onBack }: Props) {
 
       {!selectedRoot ? (
         <div className="flex flex-col gap-2">
+          {groups.length > 0 && (
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Hae nimellä tai kirjailijalla..."
+              className={`${inputClass} mb-1 w-full`}
+            />
+          )}
           {groups.length === 0 && (
             <p className="font-body text-sm text-paper/50">
               Kirjastosi on vielä tyhjä.
             </p>
           )}
-          {groups.map(({ rootId, representative, count }) => (
+          {groups.length > 0 && filteredGroups.length === 0 && (
+            <p className="font-body text-sm text-paper/50">
+              Ei hakutuloksia.
+            </p>
+          )}
+          {filteredGroups.map(({ rootId, representative, count }) => (
             <button
               key={rootId}
               onClick={() => handleSelectGroup(rootId, representative)}
@@ -299,6 +370,7 @@ export default function EditionManagement({ onBack }: Props) {
               message={message}
               onUnmerge={handleUnmerge}
               onDelete={handleDelete}
+              onEditManual={openEditManual}
             />
             <MergeSearchPanel
               // key: uusi komponenttiasennus per ryhmä, jotta haku nollautuu
@@ -331,6 +403,19 @@ export default function EditionManagement({ onBack }: Props) {
             initialAuthor={selectedRoot.representative.author ?? ""}
             initialYear={selectedRoot.representative.year_published}
             onSaved={handleManualSaved}
+          />
+        </Modal>
+      )}
+
+      {editingEdition && (
+        <Modal title="Muokkaa painosta" onClose={() => setEditingEdition(null)}>
+          <ManualBookForm
+            editBookId={editingEdition.bookId}
+            initialTitle={editingEdition.title}
+            initialAuthor={editingEdition.author ?? ""}
+            initialYear={editingEdition.yearPublished}
+            initialCoverUrl={editingEdition.coverUrl ?? ""}
+            onSaved={handleManualEdited}
           />
         </Modal>
       )}

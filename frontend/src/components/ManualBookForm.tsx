@@ -1,27 +1,37 @@
 import { useAuth } from "@clerk/clerk-react";
 import { useState } from "react";
 import { ensureBook } from "../api/books";
+import { updateBook } from "../api/bookGroups";
 import { inputClass, primaryButtonClass } from "../styles/buttons";
 import CoverUrlInput from "./CoverUrlInput";
 import Spinner from "./ui/Spinner";
 
-// Jaettu lomake manuaaliselle kirjan lisäykselle (ei API-osumaa, ks.
-// PAATOKSET.md: Manuaalinen kirjan lisäys). Käytetään kahdessa eri
-// tarkoituksessa jotka jakavat saman kentät+tallennuslogiikan mutta
-// eroavat siinä MITÄ TAPAHTUU luonnin jälkeen (onSaved-callback):
-//  - EditionManagement.tsx: uusi painos yhdistetään heti valittuun ryhmään
+// Jaettu lomake manuaaliselle kirjan lisäykselle JA muokkaukselle (ei
+// API-osumaa, ks. PAATOKSET.md: Manuaalinen kirjan lisäys). Käytetään
+// kolmessa eri tarkoituksessa jotka jakavat saman kentät+lomakepohjan
+// mutta eroavat siinä MITÄ TAPAHTUU tallennuksen jälkeen (onSaved-callback)
+// ja MITEN tallennetaan (editBookId):
+//  - EditionManagement.tsx (lisäys): uusi painos yhdistetään heti valittuun
+//    ryhmään
 //  - App.tsx (sivuvalikko "Lisää manuaalisesti"): uusi kirja jää oman
 //    ryhmänsä ensimmäiseksi/ainoaksi jäseneksi (ei mergeBooks-kutsua),
 //    ja käyttäjä navigoidaan sen BookDetail-sivulle
+//  - EditionManagement.tsx (muokkaus, editBookId annettu): päivittää
+//    olemassa olevan manuaalisen painoksen rivin sen sijaan että loisi
+//    uuden - ks. CurrentEditionsPanel.tsx:n "Muokkaa"-toiminto
 export default function ManualBookForm({
+  editBookId,
   initialTitle = "",
   initialAuthor = "",
   initialYear = null,
+  initialCoverUrl = "",
   onSaved,
 }: {
+  editBookId?: number;
   initialTitle?: string;
   initialAuthor?: string;
   initialYear?: number | null;
+  initialCoverUrl?: string;
   onSaved: (bookId: number, title: string) => void | Promise<void>;
 }) {
   const { getToken } = useAuth();
@@ -31,7 +41,7 @@ export default function ManualBookForm({
     initialYear != null ? String(initialYear) : "",
   );
   const [isbn, setIsbn] = useState("");
-  const [coverUrl, setCoverUrl] = useState("");
+  const [coverUrl, setCoverUrl] = useState(initialCoverUrl);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,6 +53,20 @@ export default function ManualBookForm({
     setSaving(true);
     setError(null);
     try {
+      if (editBookId) {
+        await updateBook(
+          editBookId,
+          {
+            title: title.trim(),
+            author: author.trim() || null,
+            coverUrl: coverUrl.trim() || null,
+            yearPublished: year ? Number(year) : null,
+          },
+          getToken,
+        );
+        await onSaved(editBookId, title.trim());
+        return;
+      }
       // openLibraryId/googleBooksId: null -> findOrCreateBook luo AINA uuden
       // books-rivin (ei koskaan löydä väärää osumaa "null = null" -kyselyllä,
       // ks. backend/utils/bookHelpers.js:n kommentti)
@@ -62,7 +86,11 @@ export default function ManualBookForm({
       await onSaved(bookId, title.trim());
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Kirjan lisäys epäonnistui",
+        err instanceof Error
+          ? err.message
+          : editBookId
+            ? "Painoksen päivitys epäonnistui"
+            : "Kirjan lisäys epäonnistui",
       );
       console.error(err);
     } finally {
@@ -105,16 +133,22 @@ export default function ManualBookForm({
             className={`${inputClass} w-24`}
           />
         </label>
-        <label className="flex flex-col gap-1">
-          <span className="font-mono text-[10px] uppercase tracking-wide text-ink/50">
-            ISBN
-          </span>
-          <input
-            value={isbn}
-            onChange={(e) => setIsbn(e.target.value)}
-            className={`${inputClass} flex-1`}
-          />
-        </label>
+        {/* ISBN ei ole muokattavissa täällä (editBookId-tila) - updateBook
+            ei kosketa isbn-saraketta, ks. api/bookGroups.ts:n updateBook-
+            kommentti. Kenttä näkyisi harhaanjohtavasti tyhjänä eikä sen
+            täyttäminen tekisi mitään, joten piilotetaan kokonaan. */}
+        {!editBookId && (
+          <label className="flex flex-col gap-1">
+            <span className="font-mono text-[10px] uppercase tracking-wide text-ink/50">
+              ISBN
+            </span>
+            <input
+              value={isbn}
+              onChange={(e) => setIsbn(e.target.value)}
+              className={`${inputClass} flex-1`}
+            />
+          </label>
+        )}
       </div>
       <div className="mt-3">
         <CoverUrlInput value={coverUrl} onChange={setCoverUrl} />
@@ -126,7 +160,11 @@ export default function ManualBookForm({
         className={`${primaryButtonClass} mt-4 inline-flex items-center gap-1.5`}
       >
         {saving && <Spinner />}
-        {saving ? "Tallennetaan..." : "Tallenna"}
+        {saving
+          ? "Tallennetaan..."
+          : editBookId
+            ? "Tallenna muutokset"
+            : "Tallenna"}
       </button>
       {error && <p className="mt-2 font-body text-xs text-wine">{error}</p>}
     </div>
