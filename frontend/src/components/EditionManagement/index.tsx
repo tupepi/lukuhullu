@@ -18,7 +18,7 @@ import Spinner from "../ui/Spinner";
 import ManualBookForm from "../ManualBookForm";
 import CurrentEditionsPanel from "./CurrentEditionsPanel";
 import MergeSearchPanel from "./MergeSearchPanel";
-import { inputClass, secondaryButtonClass } from "../../styles/buttons";
+import { secondaryButtonClass } from "../../styles/buttons";
 
 interface Props {
   onBack: () => void;
@@ -321,7 +321,13 @@ export default function EditionManagement({ onBack }: Props) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Hae nimellä tai kirjailijalla..."
-              className={`${inputClass} mb-1 w-full`}
+              // Ei jaettua inputClassia (styles/buttons.ts) - sen
+              // bg-forest/5 + border-ink/15 -yhdistelmä on suunniteltu
+              // vaalean paper-korttitaustan päälle (kaikki muut inputClass-
+              // käyttöpaikat ovat kortin/modaalin sisällä), mutta tämä kenttä
+              // on suoraan sivun tummalla taustalla - siksi eksplisiittinen
+              // bg-paper, samaan tapaan kuin Library/index.tsx:n vuosisuodatin.
+              className="mb-1 w-full rounded-md bg-paper px-3 py-2 font-body text-base text-ink placeholder:text-ink/40 focus:outline-none focus:ring-2 focus:ring-brass"
             />
           )}
           {groups.length === 0 && (

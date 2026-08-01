@@ -3,7 +3,7 @@
 // siitä kuka on kirjautunut - kyse on siis pääsyn rajaamisesta
 // kirjautuneisiin käyttäjiin, ei käyttäjäkohtaisesta sisällöstä
 // (ks. PAATOKSET.md: Julkinen selailu ja kommentit).
-import type { DiscoverBook } from "../types";
+import type { DiscoverBook, DiscoverSort } from "../types";
 import { API_BASE } from "./client";
 
 export interface DiscoverPage {
@@ -15,10 +15,11 @@ export async function getDiscoverFeed(
   getToken: () => Promise<string | null>,
   offset: number,
   limit: number,
+  sort: DiscoverSort = "popularity",
 ): Promise<DiscoverPage> {
   const token = await getToken();
   const res = await fetch(
-    `${API_BASE}/api/discover?offset=${offset}&limit=${limit}`,
+    `${API_BASE}/api/discover?offset=${offset}&limit=${limit}&sort=${sort}`,
     {
       headers: { Authorization: `Bearer ${token}` },
     },

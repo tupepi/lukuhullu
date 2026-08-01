@@ -88,9 +88,15 @@ router.get("/", requireAuth(), async (req, res) => {
       return book.readerCount + book.abandonedCount + book.comments.length;
     }
 
+    // "recent" järjestää pelkän tuoreimman aktiviteetin mukaan, "popularity"
+    // (oletus) pisteen mukaan tasapelien ratkaisijana tuoreus.
+    const sort = req.query.sort === "recent" ? "recent" : "popularity";
+
     const books = Array.from(bookMap.values()).sort((a, b) => {
-      const diff = score(b) - score(a);
-      if (diff !== 0) return diff;
+      if (sort === "popularity") {
+        const diff = score(b) - score(a);
+        if (diff !== 0) return diff;
+      }
       return (
         new Date(b.latestActivity).getTime() -
         new Date(a.latestActivity).getTime()

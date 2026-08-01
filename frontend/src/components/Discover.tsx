@@ -12,7 +12,7 @@
 // kylläkin aina ylempänä riippumatta kommenttien määrästä.
 import { useAuth } from "@clerk/clerk-react";
 import { useEffect, useRef, useState } from "react";
-import type { DiscoverBook } from "../types";
+import type { DiscoverBook, DiscoverSort } from "../types";
 import { getDiscoverFeed } from "../api/discover";
 import Spinner from "./ui/Spinner";
 
@@ -24,6 +24,7 @@ interface Props {
 
 export default function Discover({ onSelectBook }: Props) {
   const { getToken } = useAuth();
+  const [sort, setSort] = useState<DiscoverSort>("popularity");
   const [books, setBooks] = useState<DiscoverBook[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -31,11 +32,13 @@ export default function Discover({ onSelectBook }: Props) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const loadingMoreRef = useRef(false);
 
+  // Lajittelun vaihto käynnistää syötteen alusta (offset-pohjainen sivutus
+  // olettaa pysyvän järjestyksen, ks. Discover.tsx-selite yllä).
   useEffect(() => {
     async function hae() {
       setLoading(true);
       try {
-        const page = await getDiscoverFeed(getToken, 0, PAGE_SIZE);
+        const page = await getDiscoverFeed(getToken, 0, PAGE_SIZE, sort);
         setBooks(page.results);
         setHasMore(page.hasMore);
       } catch (err) {
@@ -46,7 +49,7 @@ export default function Discover({ onSelectBook }: Props) {
     }
     hae();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [sort]);
 
   // Lataa seuraavan erän kun sentinel-elementti tulee näkyviin
   // vieritettäessä listan loppua kohti - korvaa perinteisen "lataa lisää"
@@ -68,6 +71,7 @@ export default function Discover({ onSelectBook }: Props) {
                 getToken,
                 books.length,
                 PAGE_SIZE,
+                sort,
               );
               setBooks((prev) => [...prev, ...page.results]);
               setHasMore(page.hasMore);
@@ -85,12 +89,22 @@ export default function Discover({ onSelectBook }: Props) {
     observer.observe(el);
     return () => observer.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasMore, loading, books.length]);
+  }, [hasMore, loading, books.length, sort]);
 
   const heading = (
-    <h2 className="mb-3 font-display text-xl text-paper">
-      Selaa muiden lukemisia
-    </h2>
+    <div className="mb-3 flex items-center justify-between">
+      <h2 className="font-display text-xl text-paper">
+        Selaa muiden lukemisia
+      </h2>
+      <select
+        value={sort}
+        onChange={(e) => setSort(e.target.value as DiscoverSort)}
+        className="rounded-md bg-paper px-2 py-1 font-mono text-xs text-ink"
+      >
+        <option value="popularity">Suosituimmat</option>
+        <option value="recent">Viimeaikaiset</option>
+      </select>
+    </div>
   );
 
   if (loading) {

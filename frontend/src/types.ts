@@ -98,6 +98,8 @@ export interface DiscoverComment {
   status: "read" | "abandoned";
 }
 
+export type DiscoverSort = "popularity" | "recent";
+
 export interface DiscoverBook {
   bookId: number;
   title: string;
