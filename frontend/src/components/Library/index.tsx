@@ -22,6 +22,10 @@ interface Props {
   onSelectBook: (bookId: number) => void;
 }
 
+function kirjaMaara(n: number): string {
+  return `${n} ${n === 1 ? "kirja" : "kirjaa"}`;
+}
+
 export default function Library({ onSelectBook }: Props) {
   const { getToken } = useAuth();
   const [books, setBooks] = useState<UserBook[]>([]);
@@ -64,12 +68,31 @@ export default function Library({ onSelectBook }: Props) {
     ),
   ).sort((a, b) => b - a);
 
-  const hasUnknownYear = read.some((b) => b.read_year === null);
+  // Ryhmät lasketaan tähän kertaalleen (per vuosi + tuntematon vuosi),
+  // jotta sama ryhmittely käy sekä otsikoiden lukumäärille että kansikuville
+  // eikä groupByWorkRoot pyöri turhaan kahteen kertaan samalle datalle.
+  const readByYear = years.map((year) => ({
+    year,
+    groups: groupByWorkRoot(read.filter((b) => b.read_year === year)),
+  }));
+  const unknownYearGroups = groupByWorkRoot(
+    read.filter((b) => b.read_year === null),
+  );
+  const totalCount =
+    readByYear.reduce((sum, y) => sum + y.groups.length, 0) +
+    unknownYearGroups.length;
 
   return (
     <div className="pt-2">
       <section>
-        <h2 className="mb-3 font-display text-xl text-paper">Luetut</h2>
+        <div className="mb-3 flex items-baseline gap-2">
+          <h2 className="font-display text-xl text-paper">Luetut</h2>
+          {read.length > 0 && (
+            <span className="font-mono text-xs text-paper/50">
+              {kirjaMaara(totalCount)}
+            </span>
+          )}
+        </div>
 
         {read.length === 0 ? (
           <p className="font-body text-sm text-paper/50">
@@ -77,15 +100,16 @@ export default function Library({ onSelectBook }: Props) {
           </p>
         ) : (
           <div className="flex flex-col gap-6">
-            {years.map((year) => (
+            {readByYear.map(({ year, groups }) => (
               <div key={year}>
-                <h3 className="mb-2 font-display text-base text-paper/70">
+                <h3 className="mb-2 flex items-baseline gap-2 font-display text-base text-paper/70">
                   {year}
+                  <span className="font-mono text-xs text-paper/40">
+                    {kirjaMaara(groups.length)}
+                  </span>
                 </h3>
                 <Shelf>
-                  {groupByWorkRoot(
-                    read.filter((b) => b.read_year === year),
-                  ).map((group) => {
+                  {groups.map((group) => {
                     const rep = pickRepresentative(group);
                     return (
                       <BookCover
@@ -102,15 +126,16 @@ export default function Library({ onSelectBook }: Props) {
               </div>
             ))}
 
-            {hasUnknownYear && (
+            {unknownYearGroups.length > 0 && (
               <div>
-                <h3 className="mb-2 font-display text-base text-paper/70">
+                <h3 className="mb-2 flex items-baseline gap-2 font-display text-base text-paper/70">
                   Tuntematon vuosi
+                  <span className="font-mono text-xs text-paper/40">
+                    {kirjaMaara(unknownYearGroups.length)}
+                  </span>
                 </h3>
                 <Shelf>
-                  {groupByWorkRoot(
-                    read.filter((b) => b.read_year === null),
-                  ).map((group) => {
+                  {unknownYearGroups.map((group) => {
                     const rep = pickRepresentative(group);
                     return (
                       <BookCover
