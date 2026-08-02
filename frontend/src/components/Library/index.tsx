@@ -26,7 +26,6 @@ export default function Library({ onSelectBook }: Props) {
   const { getToken } = useAuth();
   const [books, setBooks] = useState<UserBook[]>([]);
   const [loading, setLoading] = useState(true);
-  const [yearFilter, setYearFilter] = useState<string>("kaikki");
 
   useEffect(() => {
     async function hae() {
@@ -55,65 +54,79 @@ export default function Library({ onSelectBook }: Props) {
 
   const read = books.filter((b) => b.status === "read");
 
-  // Vuosisuodattimen vaihtoehdot lasketaan RYHMITTELEMÄTTÖMÄSTÄ read-
-  // listasta (ei groupedRead:istä), jotta jokainen vuosi jolloin JOKIN
-  // painos on merkitty luetuksi näkyy valittavana, vaikka se ei olisi
-  // minkään ryhmän edustava rivi
+  // Vuodet uusimmasta vanhimpaan, kukin omana otsikollisena osionaan.
+  // Ryhmittely (groupByWorkRoot) tehdään VUOSITTAIN erikseen, jotta
+  // saman teoksen eri painokset jotka on luettu eri vuosina näkyvät
+  // kumpikin oikean vuoden alla, vaikka ne muuten niputettaisiin yhteen.
   const years = Array.from(
     new Set(
       read.map((b) => b.read_year).filter((y): y is number => y !== null),
     ),
   ).sort((a, b) => b - a);
 
-  const filteredRead =
-    yearFilter === "kaikki"
-      ? read
-      : read.filter((b) => b.read_year === Number(yearFilter));
-
-  // Ryhmittely tehdään vasta suodatuksen JÄLKEEN - jos ryhmässä on
-  // painoksia luettuna eri vuosina, vuosisuodatin näyttää vain ne rivit
-  // jotka osuvat valittuun vuoteen, muut ryhmän jäsenet piilotetaan
-  const groupedRead = groupByWorkRoot(filteredRead);
+  const hasUnknownYear = read.some((b) => b.read_year === null);
 
   return (
     <div className="pt-2">
       <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-display text-xl text-paper">Luetut</h2>
-          <select
-            value={yearFilter}
-            onChange={(e) => setYearFilter(e.target.value)}
-            className="rounded-md bg-paper px-2 py-1 font-mono text-xs text-ink"
-          >
-            <option value="kaikki">Kaikki vuodet</option>
-            {years.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
-        </div>
+        <h2 className="mb-3 font-display text-xl text-paper">Luetut</h2>
 
-        {groupedRead.length === 0 ? (
+        {read.length === 0 ? (
           <p className="font-body text-sm text-paper/50">
-            Ei luettuja kirjoja tällä suodattimella.
+            Ei luettuja kirjoja vielä.
           </p>
         ) : (
-          <Shelf>
-            {groupedRead.map((group) => {
-              const rep = pickRepresentative(group);
-              return (
-                <BookCover
-                  key={rep.work_group_root_id}
-                  title={rep.title}
-                  author={rep.author}
-                  coverUrl={rep.cover_url}
-                  hasMultipleEditions={group.length > 1}
-                  onClick={() => onSelectBook(rep.book_id)}
-                />
-              );
-            })}
-          </Shelf>
+          <div className="flex flex-col gap-6">
+            {years.map((year) => (
+              <div key={year}>
+                <h3 className="mb-2 font-display text-base text-paper/70">
+                  {year}
+                </h3>
+                <Shelf>
+                  {groupByWorkRoot(
+                    read.filter((b) => b.read_year === year),
+                  ).map((group) => {
+                    const rep = pickRepresentative(group);
+                    return (
+                      <BookCover
+                        key={rep.work_group_root_id}
+                        title={rep.title}
+                        author={rep.author}
+                        coverUrl={rep.cover_url}
+                        hasMultipleEditions={group.length > 1}
+                        onClick={() => onSelectBook(rep.book_id)}
+                      />
+                    );
+                  })}
+                </Shelf>
+              </div>
+            ))}
+
+            {hasUnknownYear && (
+              <div>
+                <h3 className="mb-2 font-display text-base text-paper/70">
+                  Tuntematon vuosi
+                </h3>
+                <Shelf>
+                  {groupByWorkRoot(
+                    read.filter((b) => b.read_year === null),
+                  ).map((group) => {
+                    const rep = pickRepresentative(group);
+                    return (
+                      <BookCover
+                        key={rep.work_group_root_id}
+                        title={rep.title}
+                        author={rep.author}
+                        coverUrl={rep.cover_url}
+                        hasMultipleEditions={group.length > 1}
+                        onClick={() => onSelectBook(rep.book_id)}
+                      />
+                    );
+                  })}
+                </Shelf>
+              </div>
+            )}
+          </div>
         )}
       </section>
     </div>
