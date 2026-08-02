@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { BookSearchResult } from "../types";
 import { searchBooks, ensureBook } from "../api/books";
 import Spinner from "./ui/Spinner";
+import OngoingSection from "./Library/OngoingSection";
 
 interface Props {
   onSelectBook: (bookId: number) => void;
@@ -62,6 +63,8 @@ export default function BookSearch({ onSelectBook }: Props) {
 
   return (
     <div className="pt-2">
+      <OngoingSection onSelectBook={onSelectBook} />
+
       <form onSubmit={handleSearch} className="mb-6 flex gap-2">
         <input
           type="search"

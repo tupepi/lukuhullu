@@ -35,7 +35,7 @@ type View = "tabs" | "import" | "editions";
 
 const TABS: { id: Tab; label: string; icon: typeof BookMarked }[] = [
   { id: "kirjasto", label: "Kirjastoni", icon: BookMarked },
-  { id: "haku", label: "Hae", icon: Search },
+  { id: "haku", label: "Kirjaa", icon: Search },
   { id: "selaa", label: "Selaa", icon: Compass },
 ];
 
