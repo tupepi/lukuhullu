@@ -21,6 +21,7 @@ export default function BookSearch({ onSelectBook }: Props) {
   const [results, setResults] = useState<BookSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [openingId, setOpeningId] = useState<string | null>(null);
+  const [searched, setSearched] = useState(false);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -29,6 +30,7 @@ export default function BookSearch({ onSelectBook }: Props) {
     try {
       const found = await searchBooks(query);
       setResults(found);
+      setSearched(true);
     } catch (err) {
       console.error(err);
     } finally {
@@ -85,6 +87,12 @@ export default function BookSearch({ onSelectBook }: Props) {
 
       {loading && (
         <p className="font-body text-sm italic text-paper/60">Haetaan...</p>
+      )}
+
+      {!loading && searched && results.length === 0 && (
+        <p className="font-body text-sm italic text-paper/60">
+          Ei hakutuloksia.
+        </p>
       )}
 
       <div className="flex flex-col gap-3">

@@ -101,13 +101,19 @@ export default function Library({ onSelectBook }: Props) {
         ) : (
           <div className="flex flex-col gap-6">
             {readByYear.map(({ year, groups }) => (
-              <div key={year}>
-                <h3 className="mb-2 flex items-baseline gap-2 font-display text-base text-paper/70">
+              <details key={year} open className="group">
+                <summary className="mb-2 flex cursor-pointer list-none items-baseline [&::-webkit-details-marker]:hidden gap-2 font-display text-base text-paper/70">
+                  <svg
+                    viewBox="0 0 20 20"
+                    className="h-3 w-3 shrink-0 -rotate-90 fill-paper/50 transition-transform group-open:rotate-0"
+                  >
+                    <path d="M6 4l8 6-8 6V4z" />
+                  </svg>
                   {year}
                   <span className="font-mono text-xs text-paper/40">
                     {kirjaMaara(groups.length)}
                   </span>
-                </h3>
+                </summary>
                 <Shelf>
                   {groups.map((group) => {
                     const rep = pickRepresentative(group);
@@ -123,17 +129,23 @@ export default function Library({ onSelectBook }: Props) {
                     );
                   })}
                 </Shelf>
-              </div>
+              </details>
             ))}
 
             {unknownYearGroups.length > 0 && (
-              <div>
-                <h3 className="mb-2 flex items-baseline gap-2 font-display text-base text-paper/70">
+              <details open className="group">
+                <summary className="mb-2 flex cursor-pointer list-none items-baseline [&::-webkit-details-marker]:hidden gap-2 font-display text-base text-paper/70">
+                  <svg
+                    viewBox="0 0 20 20"
+                    className="h-3 w-3 shrink-0 -rotate-90 fill-paper/50 transition-transform group-open:rotate-0"
+                  >
+                    <path d="M6 4l8 6-8 6V4z" />
+                  </svg>
                   Tuntematon vuosi
                   <span className="font-mono text-xs text-paper/40">
                     {kirjaMaara(unknownYearGroups.length)}
                   </span>
-                </h3>
+                </summary>
                 <Shelf>
                   {unknownYearGroups.map((group) => {
                     const rep = pickRepresentative(group);
@@ -149,7 +161,7 @@ export default function Library({ onSelectBook }: Props) {
                     );
                   })}
                 </Shelf>
-              </div>
+              </details>
             )}
           </div>
         )}
