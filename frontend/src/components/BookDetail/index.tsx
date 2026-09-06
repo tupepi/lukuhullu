@@ -39,6 +39,7 @@ import {
   secondaryButtonClass,
 } from "../../styles/buttons";
 import { getBookDetail, getUserBooksForGroup } from "../../api/books";
+import { useIsAdmin } from "../../hooks/useIsAdmin";
 
 interface Props {
   bookId: number;
@@ -61,6 +62,7 @@ export default function BookDetail({
   onBack,
 }: Props) {
   const { getToken } = useAuth();
+  const isAdmin = useIsAdmin();
   const [detail, setDetail] = useState<BookDetailData | null>(null);
   const [ownEntries, setOwnEntries] = useState<UserBook[]>([]);
   const [loading, setLoading] = useState(true);
@@ -160,16 +162,18 @@ export default function BookDetail({
               Ei kuvaa
             </div>
           )}
-          <button
-            onClick={() => {
-              setCoverUrlInput(detail.coverUrl ?? "");
-              setEditingCover(true);
-            }}
-            title="Muokkaa kansikuvaa"
-            className="absolute -right-1.5 -top-1.5 rounded-full bg-paper p-1.5 text-ink/60 shadow-md transition hover:text-ink"
-          >
-            <Pencil size={12} />
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => {
+                setCoverUrlInput(detail.coverUrl ?? "");
+                setEditingCover(true);
+              }}
+              title="Muokkaa kansikuvaa"
+              className="absolute -right-1.5 -top-1.5 rounded-full bg-paper p-1.5 text-ink/60 shadow-md transition hover:text-ink"
+            >
+              <Pencil size={12} />
+            </button>
+          )}
         </div>
         <div>
           <h2 className="font-display text-xl leading-snug text-paper">
@@ -182,7 +186,7 @@ export default function BookDetail({
         </div>
       </div>
 
-      {editingCover && (
+      {isAdmin && editingCover && (
         <div className="mt-3 rounded-lg bg-paper p-3 shadow-sm">
           <CoverUrlInput value={coverUrlInput} onChange={setCoverUrlInput} />
           <div className="mt-2 flex gap-2">
@@ -318,6 +322,7 @@ export default function BookDetail({
         onSelectEdition={onNavigateToBook}
         currentBookId={detail.bookId}
         onDeletedCurrent={onBack}
+        isAdmin={isAdmin}
       />
 
       {/* Popupit renderöidään aivan komponentin lopussa, ehdollisesti -

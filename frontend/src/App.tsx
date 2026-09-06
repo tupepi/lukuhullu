@@ -27,6 +27,7 @@ import EditionManagement from "./components/EditionManagement";
 import Modal from "./components/ui/Modal";
 import Spinner from "./components/ui/Spinner";
 import ManualBookForm from "./components/ManualBookForm";
+import { useIsAdmin } from "./hooks/useIsAdmin";
 
 type Tab = "kirjasto" | "haku" | "selaa";
 // 'tabs' = normaali alapalkki+välilehdet -näkymä, muut ovat sivuvalikosta
@@ -41,6 +42,7 @@ const TABS: { id: Tab; label: string; icon: typeof BookMarked }[] = [
 
 function AuthenticatedApp() {
   const { getToken } = useAuth();
+  const isAdmin = useIsAdmin();
   const [displayName, setDisplayNameState] = useState<
     string | null | undefined
   >(undefined);
@@ -116,7 +118,10 @@ function AuthenticatedApp() {
     );
   }
 
-  if (currentView === "editions") {
+  // isAdmin-tarkistus myös täällä, ei vain SideMenussa (jonka painike on
+  // piilotettu ei-admineilta) - varmistaa ettei currentView voi jäädä
+  // "editions"-tilaan esim. admin-oikeuden vaihtuessa kesken session.
+  if (currentView === "editions" && isAdmin) {
     return (
       <div className="min-h-dvh bg-forest">
         {header}
@@ -152,6 +157,7 @@ function AuthenticatedApp() {
           setManualAddOpen(true);
           setMenuOpen(false);
         }}
+        isAdmin={isAdmin}
       />
 
       {manualAddOpen && (

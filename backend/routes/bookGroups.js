@@ -15,6 +15,7 @@ import {
   unmergeBook,
 } from "../utils/workGroup.js";
 import { findOrCreateBook } from "../utils/bookHelpers.js";
+import { requireAdmin } from "../utils/adminUsers.js";
 
 const router = express.Router();
 
@@ -60,7 +61,7 @@ router.post("/ensure", requireAuth(), async (req, res) => {
   }
 });
 
-router.post("/:bookId/merge", requireAuth(), async (req, res) => {
+router.post("/:bookId/merge", requireAuth(), requireAdmin, async (req, res) => {
   const { bookId } = req.params;
   const { targetBookId, targetExternal } = req.body;
 
@@ -88,7 +89,7 @@ router.post("/:bookId/merge", requireAuth(), async (req, res) => {
 });
 
 // POST /api/books/:bookId/unmerge - irrottaa kirjan ryhmästään
-router.post("/:bookId/unmerge", requireAuth(), async (req, res) => {
+router.post("/:bookId/unmerge", requireAuth(), requireAdmin, async (req, res) => {
   const { bookId } = req.params;
   try {
     await unmergeBook(Number(bookId));
@@ -152,7 +153,7 @@ router.get("/", requireAuth(), async (req, res) => {
 // kansikuva) kaikille kerralla. Kuka tahansa kirjautunut käyttäjä saa
 // muokata (ei omistajuustarkistusta), koska kansikuva ei ole kenenkään
 // henkilökohtaista dataa.
-router.put("/:bookId/cover-url", requireAuth(), async (req, res) => {
+router.put("/:bookId/cover-url", requireAuth(), requireAdmin, async (req, res) => {
   const { bookId } = req.params;
   const { coverUrl } = req.body;
 
@@ -183,7 +184,7 @@ router.put("/:bookId/cover-url", requireAuth(), async (req, res) => {
 // eikä niitä pidä voida muuttaa käsin virheellisiksi. isbn EI ole mukana
 // päivitettävissä kentissä (ks. PAATOKSET.md: "Tarkoituksella jätetty
 // myöhemmäksi" - ei ISBN-UI:ta missään näkymässä).
-router.put("/:bookId", requireAuth(), async (req, res) => {
+router.put("/:bookId", requireAuth(), requireAdmin, async (req, res) => {
   const { bookId } = req.params;
   const { title, author, coverUrl, yearPublished } = req.body;
 
@@ -235,7 +236,7 @@ router.put("/:bookId", requireAuth(), async (req, res) => {
 // selkeän varoituksen ennen poistoa (window.confirm), koska toimintoa ei
 // voi perua. Kuka tahansa kirjautunut käyttäjä saa poistaa (ei omistajuus-
 // tarkistusta) - sama peruste kuin cover-url-reitillä.
-router.delete("/:bookId", requireAuth(), async (req, res) => {
+router.delete("/:bookId", requireAuth(), requireAdmin, async (req, res) => {
   const { bookId } = req.params;
   try {
     const bookResult = await pool.query(

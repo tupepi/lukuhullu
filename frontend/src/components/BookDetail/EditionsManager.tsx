@@ -14,6 +14,9 @@ interface Props {
   // tällä sivulla - tälle bookId:lle ei ole enää mitään näytettävää, joten
   // vanhempi (BookDetail/index.tsx) navigoi takaisin edelliseen näkymään.
   onDeletedCurrent: () => void;
+  // Väliaikainen kovakoodattu admin-rajaus (ks. hooks/useIsAdmin.ts) -
+  // poisto vaikuttaa jaettuun books-dataan, joten se piilotetaan ei-admineilta.
+  isAdmin: boolean;
 }
 
 function isManualEdition(ed: Edition) {
@@ -35,6 +38,7 @@ export default function EditionsManager({
   onSelectEdition,
   currentBookId,
   onDeletedCurrent,
+  isAdmin,
 }: Props) {
   const { getToken } = useAuth();
   const [editions, setEditions] = useState<Edition[] | null>(null);
@@ -126,7 +130,7 @@ export default function EditionsManager({
                       {ed.isRoot && " · ryhmän edustaja Selaa-näkymässä"}
                     </p>
                   </div>
-                  {isManualEdition(ed) && (
+                  {isAdmin && isManualEdition(ed) && (
                     <button
                       onClick={(e) => handleDelete(ed, e)}
                       disabled={busy}
@@ -146,7 +150,7 @@ export default function EditionsManager({
             <p className="font-body text-sm text-ink/50">
               Ei muita versioita.
             </p>
-            {isManualEdition(editions[0]) && (
+            {isAdmin && isManualEdition(editions[0]) && (
               <button
                 onClick={(e) => handleDelete(editions[0], e)}
                 disabled={busy}

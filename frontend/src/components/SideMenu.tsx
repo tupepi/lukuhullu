@@ -11,6 +11,10 @@ interface Props {
   // Eri asia kuin onNavigate: ei vaihda koko sivun näkymää, vaan avaa
   // ManualBookForm-popupin suoraan nykyisen näkymän päälle (ks. App.tsx).
   onManualAdd: () => void;
+  // Väliaikainen kovakoodattu admin-rajaus (ks. hooks/useIsAdmin.ts) -
+  // "Hallitse painoksia" vie sivulle jossa voi niputtaa/muokata/poistaa
+  // jaettua books-dataa, joten se piilotetaan ei-admineilta.
+  isAdmin: boolean;
 }
 
 export default function SideMenu({
@@ -18,6 +22,7 @@ export default function SideMenu({
   onClose,
   onNavigate,
   onManualAdd,
+  isAdmin,
 }: Props) {
   if (!isOpen) return null;
 
@@ -43,13 +48,15 @@ export default function SideMenu({
             <Upload size={18} className="text-brass" />
             Tuo kirjoja
           </button>
-          <button
-            onClick={() => onNavigate("editions")}
-            className="flex items-center gap-3 rounded-lg px-3 py-3 text-left font-body text-sm font-medium text-ink transition hover:bg-brass/10"
-          >
-            <GitMerge size={18} className="text-brass" />
-            Hallitse painoksia
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => onNavigate("editions")}
+              className="flex items-center gap-3 rounded-lg px-3 py-3 text-left font-body text-sm font-medium text-ink transition hover:bg-brass/10"
+            >
+              <GitMerge size={18} className="text-brass" />
+              Hallitse painoksia
+            </button>
+          )}
           <button
             onClick={onManualAdd}
             className="flex items-center gap-3 rounded-lg px-3 py-3 pl-9 text-left font-body text-sm font-medium text-ink transition hover:bg-brass/10"
