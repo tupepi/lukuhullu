@@ -22,6 +22,7 @@ import discoverRouter from "./routes/discover.js";
 import bookDetailRouter from "./routes/bookDetail.js";
 import importRouter from "./routes/import.js";
 import bookGroupsRouter from "./routes/bookGroups.js";
+import webhooksRouter from "./routes/webhooks.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -31,6 +32,13 @@ const PORT = process.env.PORT || 3001;
 // ajetaan eri osoitteissa (esim. localhost:3000 vs localhost:3001). CORS-ongelma ilmenee
 // selaimen konsolissa "Access-Control-Allow-Origin" -virheilmoituksena, jos tätä ei ole.
 app.use(cors({ origin: process.env.CORS_ALLOWED_ORIGIN }));
+
+// Kytketään ENNEN app.use(express.json())-riviä: Clerkin webhookit
+// tarkistetaan Svix-allekirjoituksella raa'asta bodysta (ks. routes/
+// webhooks.js), joka ei enää täsmäisi jos globaali JSON-parseri olisi
+// jo muuttanut sen JS-objektiksi. Reitti tekee itse oman
+// express.raw()-käsittelynsä vain tälle polulle.
+app.use("/api/webhooks", webhooksRouter);
 
 // Muuttaa saapuvien POST/PUT-pyyntöjen JSON-bodyn automaattisesti
 // tavalliseksi JS-objektiksi (req.body). Ilman tätä req.body olisi undefined.
