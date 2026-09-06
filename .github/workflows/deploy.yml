@@ -41,6 +41,7 @@ jobs:
         env:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          VITE_ADMIN_USER_IDS: ${{ secrets.VITE_ADMIN_USER_IDS }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
